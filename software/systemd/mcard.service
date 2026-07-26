@@ -1,0 +1,20 @@
+[Unit]
+Description=M-Card - lecteur d'albums Roon par carte RFID
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mcard
+Group=mcard
+SupplementaryGroups=i2c gpio plugdev
+# lgpio écrit son fichier de notification (.lgd-nfy-*) dans le cwd
+WorkingDirectory=/var/lib/mcard
+ExecStart=/opt/mcard/venv/bin/python -m mcard --config /etc/mcard
+Restart=always
+RestartSec=5
+# le lecteur ACR122U peut mettre du temps à s'énumérer au boot
+ExecStartPre=/bin/sleep 2
+
+[Install]
+WantedBy=multi-user.target

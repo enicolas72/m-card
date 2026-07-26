@@ -1,0 +1,45 @@
+# M-Card — configuration générale
+# Copier vers /etc/mcard/mcard.yaml (fait par install.sh)
+
+roon:
+  # Adresse du serveur Roon. Laisser vide pour la découverte automatique
+  # sur le réseau local (recommandé).
+  host: ""
+  port: 9330
+  # Nom exact de la zone Roon à piloter (Roon -> en bas à droite).
+  # Laisser vide pour prendre la première zone disponible.
+  zone_name: ""
+  token_file: /var/lib/mcard/roon_token.txt
+
+behavior:
+  # Action quand le CD/vinyle est retiré : pause | stop | none
+  on_card_removed: pause
+  # Ignorer une re-détection de la même carte pendant N secondes
+  redetect_cooldown_s: 3.0
+  # Carte considérée retirée après N secondes sans réponse (lisse le test
+  # de présence défaillant de l'ACR122U sur certains tags Mifare Ultralight)
+  removal_grace_s: 1.0
+
+lcd:
+  # Adresse I2C du backpack PCF8574 (0x27 en général, 0x3F pour certains ;
+  # vérifier avec : i2cdetect -y 1)
+  i2c_address: 0x27
+  i2c_port: 1
+  cols: 20
+  rows: 4
+
+buttons:
+  # Numérotation BCM ; chaque bouton relie la broche à GND (pull-up interne)
+  prev: 5
+  playpause: 6
+  next: 13
+
+web:
+  host: 0.0.0.0   # accessible sur le LAN : http://mcard.local:8088
+  port: 8088
+
+log:
+  file: /var/log/mcard/mcard.log
+  level: INFO      # DEBUG pour le détail
+  max_bytes: 1000000
+  backup_count: 5

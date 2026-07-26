@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 640" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      .box { fill:#f4f6f8; stroke:#334; stroke-width:2; rx:8; }
+      .title { font-size:15px; font-weight:bold; fill:#223; }
+      .label { font-size:11px; fill:#223; }
+      .pin { font-size:9.5px; fill:#445; font-family:monospace; }
+      .wire { fill:none; stroke-width:2.5; stroke-linecap:round; }
+      .note { font-size:10.5px; fill:#667; font-style:italic; }
+    </style>
+  </defs>
+
+  <text x="20" y="28" font-size="19" font-weight="bold" fill="#112">M-Card — schéma de câblage (V0.1)</text>
+  <text x="20" y="46" class="note">LCD en I2C (4 fils) · 3 boutons vers GND (pull-ups internes) · ACR122U en USB · alimentation USB-C</text>
+
+  <!-- ===================== Raspberry Pi ===================== -->
+  <rect x="330" y="80" width="300" height="420" class="box" rx="10"/>
+  <text x="480" y="104" text-anchor="middle" class="title">Raspberry Pi 3 B+</text>
+  <text x="480" y="120" text-anchor="middle" class="note">connecteur GPIO 40 broches (vue de dessus)</text>
+
+  <!-- GPIO header : 2 colonnes -->
+  <rect x="430" y="132" width="100" height="330" fill="#e3e7ec" stroke="#889" rx="4"/>
+  <!-- selected pins, left col = impairs, right col = pairs -->
+  <!-- rows we draw: 1/2, 3/4, 5/6, 29/30, 31/32, 33/34, 35/36, 39/40 -->
+  <g class="pin">
+    <!-- row y positions -->
+    <!-- pin circles left -->
+    <circle cx="450" cy="150" r="5" fill="#c9d" stroke="#557"/><text x="424" y="153" text-anchor="end">1 · 3V3</text>
+    <circle cx="510" cy="150" r="5" fill="#e66" stroke="#557"/><text x="536" y="153">2 · 5V</text>
+    <circle cx="450" cy="180" r="5" fill="#6a6" stroke="#557"/><text x="424" y="183" text-anchor="end">3 · GPIO2 SDA</text>
+    <circle cx="510" cy="180" r="5" fill="#e66" stroke="#557"/><text x="536" y="183">4 · 5V</text>
+    <circle cx="450" cy="210" r="5" fill="#fa4" stroke="#557"/><text x="424" y="213" text-anchor="end">5 · GPIO3 SCL</text>
+    <circle cx="510" cy="210" r="5" fill="#333" stroke="#557"/><text x="536" y="213">6 · GND</text>
+    <text x="480" y="248" text-anchor="middle" fill="#99a">· · ·</text>
+    <circle cx="450" cy="280" r="5" fill="#48c" stroke="#557"/><text x="424" y="283" text-anchor="end">29 · GPIO5</text>
+    <circle cx="510" cy="280" r="5" fill="#ddd" stroke="#889"/><text x="536" y="283">30 · GND</text>
+    <circle cx="450" cy="310" r="5" fill="#48c" stroke="#557"/><text x="424" y="313" text-anchor="end">31 · GPIO6</text>
+    <circle cx="510" cy="310" r="5" fill="#ddd" stroke="#889"/><text x="536" y="313">32</text>
+    <circle cx="450" cy="340" r="5" fill="#48c" stroke="#557"/><text x="424" y="343" text-anchor="end">33 · GPIO13</text>
+    <circle cx="510" cy="340" r="5" fill="#ddd" stroke="#889"/><text x="536" y="343">34 · GND</text>
+    <circle cx="450" cy="370" r="5" fill="#ddd" stroke="#889"/><text x="424" y="373" text-anchor="end">35 · GPIO19</text>
+    <circle cx="510" cy="370" r="5" fill="#ddd" stroke="#889"/><text x="536" y="373">36</text>
+    <circle cx="450" cy="430" r="5" fill="#ddd" stroke="#889"/><text x="424" y="433" text-anchor="end">37</text>
+    <circle cx="510" cy="430" r="5" fill="#333" stroke="#557"/><text x="536" y="433">39 · GND</text>
+  </g>
+
+  <!-- USB ports -->
+  <rect x="600" y="140" width="30" height="46" fill="#cfd6dd" stroke="#667"/>
+  <text x="615" y="200" text-anchor="middle" class="label">USB-A</text>
+  <!-- micro USB power -->
+  <rect x="360" y="480" width="46" height="20" fill="#cfd6dd" stroke="#667"/>
+  <text x="383" y="516" text-anchor="middle" class="label">micro-USB (alim)</text>
+
+  <!-- ===================== LCD ===================== -->
+  <rect x="40" y="90" width="240" height="130" class="box"/>
+  <text x="160" y="114" text-anchor="middle" class="title">LCD 2004A 20×4</text>
+  <text x="160" y="130" text-anchor="middle" class="note">backpack I2C PCF8574 (adresse 0x27)</text>
+  <g class="pin">
+    <circle cx="264" cy="150" r="5" fill="#333" stroke="#557"/><text x="252" y="153" text-anchor="end">GND</text>
+    <circle cx="264" cy="170" r="5" fill="#e66" stroke="#557"/><text x="252" y="173" text-anchor="end">VCC</text>
+    <circle cx="264" cy="190" r="5" fill="#6a6" stroke="#557"/><text x="252" y="193" text-anchor="end">SDA</text>
+    <circle cx="264" cy="210" r="5" fill="#fa4" stroke="#557"/><text x="252" y="213" text-anchor="end">SCL</text>
+  </g>
+  <!-- wires LCD -> Pi -->
+  <path class="wire" stroke="#333" d="M269 150 C 340 150, 400 210, 505 213 L 505 210"/>
+  <path class="wire" stroke="#e66" d="M269 170 C 350 168, 420 150, 505 150"/>
+  <path class="wire" stroke="#6a6" d="M269 190 C 340 190, 380 180, 445 180"/>
+  <path class="wire" stroke="#fa4" d="M269 210 C 340 212, 380 210, 445 210"/>
+
+  <!-- ===================== Boutons ===================== -->
+  <rect x="40" y="270" width="240" height="180" class="box"/>
+  <text x="160" y="294" text-anchor="middle" class="title">Boutons (12 mm, momentanés)</text>
+  <g class="label">
+    <circle cx="90" cy="330" r="14" fill="#fff" stroke="#334" stroke-width="2"/><text x="90" y="334" text-anchor="middle">⏮</text>
+    <circle cx="160" cy="330" r="14" fill="#fff" stroke="#334" stroke-width="2"/><text x="160" y="334" text-anchor="middle">⏯</text>
+    <circle cx="230" cy="330" r="14" fill="#fff" stroke="#334" stroke-width="2"/><text x="230" y="334" text-anchor="middle">⏭</text>
+    <text x="90" y="362" text-anchor="middle" class="pin">GPIO5</text>
+    <text x="160" y="362" text-anchor="middle" class="pin">GPIO6</text>
+    <text x="230" y="362" text-anchor="middle" class="pin">GPIO13</text>
+  </g>
+  <text x="160" y="430" text-anchor="middle" class="note">2e broche de chaque bouton → GND commun (broche 39)</text>
+
+  <!-- wires buttons -> Pi -->
+  <path class="wire" stroke="#48c" d="M104 330 C 260 330, 330 282, 445 280"/>
+  <path class="wire" stroke="#48c" d="M174 336 C 290 350, 345 312, 445 310"/>
+  <path class="wire" stroke="#48c" d="M244 340 C 310 368, 355 342, 445 340"/>
+  <!-- common ground -->
+  <path class="wire" stroke="#333" d="M90 344 L 90 400 L 230 400 L 230 344 M160 344 L 160 400"/>
+  <path class="wire" stroke="#333" d="M230 400 C 340 440, 400 432, 505 432 L 505 430"/>
+
+  <!-- ===================== ACR122U ===================== -->
+  <rect x="720" y="100" width="220" height="120" class="box"/>
+  <text x="830" y="124" text-anchor="middle" class="title">ACR122U (PN532)</text>
+  <text x="830" y="142" text-anchor="middle" class="note">carte nue, fixée derrière la fente</text>
+  <text x="830" y="158" text-anchor="middle" class="note">portée ~4 cm à travers le PLA</text>
+  <rect x="770" y="170" width="120" height="34" fill="none" stroke="#889" stroke-dasharray="4 3"/>
+  <text x="830" y="191" text-anchor="middle" class="pin">antenne 13,56 MHz</text>
+  <!-- USB wire -->
+  <path class="wire" stroke="#856" d="M720 163 C 680 163, 660 163, 630 163"/>
+  <text x="672" y="152" text-anchor="middle" class="label">câble USB d'origine</text>
+
+  <!-- ===================== Alim ===================== -->
+  <rect x="120" y="520" width="230" height="70" class="box"/>
+  <text x="235" y="545" text-anchor="middle" class="title">Embase USB-C (arrière)</text>
+  <text x="235" y="563" text-anchor="middle" class="note">chargeur externe 5 V / 3 A</text>
+  <path class="wire" stroke="#e66" d="M350 555 C 372 555, 383 540, 383 500"/>
+  <text x="420" y="548" class="label">câble adaptateur → micro-USB</text>
+
+  <!-- ===================== Légende ===================== -->
+  <g class="label">
+    <rect x="650" y="380" width="290" height="150" class="box"/>
+    <text x="668" y="404" class="title" font-size="13">Légende des fils</text>
+    <line x1="668" y1="420" x2="700" y2="420" class="wire" stroke="#e66"/><text x="708" y="424">5 V</text>
+    <line x1="668" y1="440" x2="700" y2="440" class="wire" stroke="#333"/><text x="708" y="444">GND</text>
+    <line x1="668" y1="460" x2="700" y2="460" class="wire" stroke="#6a6"/><text x="708" y="464">SDA (I2C données)</text>
+    <line x1="668" y1="480" x2="700" y2="480" class="wire" stroke="#fa4"/><text x="708" y="484">SCL (I2C horloge)</text>
+    <line x1="668" y1="500" x2="700" y2="500" class="wire" stroke="#48c"/><text x="708" y="504">boutons (entrées GPIO, pull-up)</text>
+    <line x1="668" y1="520" x2="700" y2="520" class="wire" stroke="#856"/><text x="708" y="524">USB</text>
+  </g>
+</svg>

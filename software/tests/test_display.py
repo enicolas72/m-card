@@ -1,0 +1,39 @@
+import time
+
+from conftest import MemoryLcd
+
+from mcard.display import Display, to_lcd_ascii
+
+
+def test_transliteration_of_accents():
+    assert to_lcd_ascii("Éléphant à l'œuvre — déjà…") == "Elephant a l'oeuvre - deja..."
+
+
+def test_short_lines_padded_to_width():
+    lcd = MemoryLcd()
+    display = Display(lcd)
+    display.set_lines("Bonjour", "", "Ligne 3", "")
+    assert lcd.rows_content[0] == "Bonjour".ljust(20)
+    assert lcd.rows_content[2].startswith("Ligne 3")
+    display.close()
+
+
+def test_long_line_scrolls():
+    lcd = MemoryLcd()
+    display = Display(lcd)
+    long_title = "Un titre d'album vraiment beaucoup trop long pour un 20x4"
+    display.set_lines(long_title, "", "", "")
+    first = lcd.rows_content[0]
+    assert len(first) == 20
+    time.sleep(1.5)  # laisser le ticker défiler
+    assert lcd.rows_content[0] != first
+    display.close()
+
+
+def test_now_playing_layout():
+    lcd = MemoryLcd()
+    display = Display(lcd)
+    display.show_now_playing("playing", "Kind of Blue", "So What", "Miles Davis")
+    assert lcd.rows_content[0].startswith("> playing")
+    assert lcd.rows_content[1].startswith("Kind of Blue")
+    display.close()
