@@ -1,5 +1,26 @@
 # Journal du projet M-Card
 
+## 2026-07-26 (soir) — Résolution tolérante des noms d'albums
+
+**Problème** (constaté avec les premières vraies cartes) : `play_media` de
+pyroon exige le titre exact de la bibliothèque, casse et accents compris —
+« The Girl in **The** Other Room » ≠ « The Girl in **the** Other Room » →
+échec. De plus sa valeur de retour est inexploitable (None en succès comme en
+échec selon les versions), ce qui laissait l'appareil bloqué sur
+« Lancement... » sans message d'erreur. Première tentative de correctif via le
+paramètre `report_error` de play_media : abandonnée, paramètre absent de
+certaines versions de pyroon (blocage constaté sur le Pi).
+
+**Solution retenue** : ne plus dépendre de play_media pour la recherche — le
+titre canonique est résolu AVANT lecture, contre la liste réelle des albums
+(hiérarchie `albums` du browse Roon, paginée, cache 5 min rafraîchi
+automatiquement sur échec de résolution). Correspondance : égalité normalisée
+(casse/accents/apostrophes/espaces) puis inclusion non ambiguë ; en cas
+d'ambiguïté, pas de lecture au hasard, jusqu'à 5 candidats listés dans le log.
+Les entrées `path:` explicites restent en correspondance stricte. Le log
+conseille le titre canonique à reporter dans albums.yaml. 45 tests (+10 :
+normalisation, correspondance, pagination du browse, cache).
+
 ## 2026-07-26 — Premier jet complet + prototype breadboard validé
 
 **Réalisé** (session initiale puis débogage en direct sur le matériel) :

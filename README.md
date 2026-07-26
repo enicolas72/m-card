@@ -32,7 +32,10 @@ CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 
 3. **Installer** sur le Pi : [SETUP.md](docs/SETUP.md) — `sudo bash install.sh`.
 4. **Autoriser** l'extension M-Card dans Roon → Settings → Extensions.
 5. Poser une carte inconnue → elle apparaît en `TODO` dans `albums.yaml` →
-   renseigner le nom de l'album via `http://mcard.local:8088/config`.
+   renseigner le nom de l'album via `http://mcard.local:8088/config`
+   (la casse et les accents peuvent différer de Roon : le titre est résolu
+   contre la bibliothèque réelle, avec suggestions dans le log en cas
+   d'ambiguïté).
 6. **Imprimer** le boîtier et assembler ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 
 ## Essayer sans matériel (mode simulé)

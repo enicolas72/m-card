@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import logging
 import queue
+import re
 import threading
+import unicodedata
 from pathlib import Path
 from typing import Any, Optional
 
@@ -36,6 +38,34 @@ APP_INFO = {
 RECONNECT_DELAY_S = 5.0
 
 
+def _norm(text: str) -> str:
+    """Normalise un titre pour comparaison : casse, accents, apostrophes, espaces."""
+    text = text.replace("’", "'").replace("‘", "'").casefold()
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(c for c in text if not unicodedata.combining(c))
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def best_album_match(target: str, candidates: list[str]) -> tuple[Optional[str], list[str]]:
+    """Retrouve `target` dans `candidates` avec tolérance.
+
+    Retourne (titre_exact_de_la_bibliothèque | None, suggestions).
+    Priorité : égalité normalisée, puis inclusion (dans un seul sens ou
+    l'autre) si elle est non ambiguë. En cas d'ambiguïté, retourne None et
+    jusqu'à 5 suggestions pour les logs.
+    """
+    nt = _norm(target)
+    if not nt:
+        return None, []
+    exact = [c for c in candidates if _norm(c) == nt]
+    if exact:
+        return exact[0], []
+    partial = [c for c in candidates if nt in _norm(c) or _norm(c) in nt]
+    if len(partial) == 1:
+        return partial[0], []
+    return None, partial[:5]
+
+
 class RoonClient:
     """Enveloppe robuste autour de RoonApi."""
 
@@ -53,6 +83,8 @@ class RoonClient:
         self._zone_name = zone_name
         self._token_file = Path(token_file)
         self._api = None
+        self._albums_cache: list[str] = []
+        self._albums_cache_ts: float = 0.0
         self._lock = threading.Lock()
         self._stop = threading.Event()
         self._thread = threading.Thread(target=self._supervise, daemon=True, name="roon-client")
@@ -171,26 +203,96 @@ class RoonClient:
     # ---- commandes -------------------------------------------------------
 
     def play_album(self, entry: AlbumEntry) -> bool:
-        """Lance la lecture d'un album (par chemin explicite ou par nom)."""
+        """Lance la lecture d'un album (par chemin explicite ou par nom).
+
+        play_media exige le titre exact (casse et accents compris) et sa
+        valeur de retour n'est pas fiable (None dans les deux cas selon les
+        versions de pyroon) : on résout donc le titre canonique AVANT de
+        jouer, via la liste réelle des albums de la bibliothèque (en cache).
+        """
         with self._lock:
             api = self._api
         zone = self._zone()
         if api is None or zone is None:
             log.error("Lecture impossible: pas de connexion Roon ou de zone")
             return False
-        path = entry.path or ["Library", "Albums", entry.album]
         zone_id = zone["zone_id"]
-        log.info("Lecture de %s sur la zone «%s» (chemin %s)",
-                 entry.display_name(), zone.get("display_name"), path)
+
+        if entry.path:  # chemin explicite : correspondance stricte assumée
+            log.info("Lecture de %s sur la zone «%s» (chemin %s)",
+                     entry.display_name(), zone.get("display_name"), entry.path)
+            return self._play_path(api, zone_id, entry.path)
+
+        title = self._resolve_album_title(api, entry.album)
+        if title is None:
+            return False
+        if title != entry.album:
+            log.info("«%s» résolu en «%s» — conseil : reporter ce titre dans "
+                     "albums.yaml", entry.album, title)
+        log.info("Lecture de «%s» sur la zone «%s»", title, zone.get("display_name"))
+        return self._play_path(api, zone_id, ["Library", "Albums", title])
+
+    def _play_path(self, api, zone_id: str, path: list[str]) -> bool:
         try:
-            result = api.play_media(zone_id, path)
+            api.play_media(zone_id, path)
+            return True
         except Exception as exc:
             log.error("play_media a échoué: %s", exc)
             return False
-        if result is False:
-            log.error("Album introuvable dans Roon: %s", path)
-            return False
-        return True
+
+    def _resolve_album_title(self, api, album: str) -> Optional[str]:
+        """Titre canonique de l'album dans la bibliothèque, ou None (avec logs)."""
+        titles, from_cache = self._album_titles_cached(api)
+        found, suggestions = best_album_match(album, titles)
+        if found is None and from_cache:
+            # la bibliothèque a pu changer depuis le cache : on rafraîchit
+            titles, _ = self._album_titles_cached(api, force_refresh=True)
+            found, suggestions = best_album_match(album, titles)
+        if found is not None:
+            return found
+        if suggestions:
+            log.error("«%s» est ambigu dans la bibliothèque, candidats : %s — "
+                      "précisez le titre dans albums.yaml", album, suggestions)
+        else:
+            log.error("«%s» introuvable dans la bibliothèque (%d albums parcourus)",
+                      album, len(titles))
+        return None
+
+    def _album_titles_cached(self, api, force_refresh: bool = False) -> tuple[list[str], bool]:
+        """(titres, servi_depuis_le_cache) — cache rafraîchi au-delà de 5 min."""
+        import time
+
+        now = time.monotonic()
+        if (not force_refresh and self._albums_cache
+                and now - self._albums_cache_ts < 300):
+            return self._albums_cache, True
+        titles = self._list_album_titles(api)
+        if titles:  # ne pas écraser un cache valide par un échec de parcours
+            self._albums_cache = titles
+            self._albums_cache_ts = now
+        return self._albums_cache, False
+
+    def _list_album_titles(self, api) -> list[str]:
+        """Liste les titres d'albums de la bibliothèque (hiérarchie 'albums', paginée)."""
+        try:
+            resp = api.browse_browse({"hierarchy": "albums", "pop_all": True})
+            total = (resp or {}).get("list", {}).get("count", 0)
+            titles: list[str] = []
+            offset = 0
+            while offset < total:
+                load = api.browse_load(
+                    {"hierarchy": "albums", "offset": offset,
+                     "set_display_offset": offset}
+                )
+                batch = (load or {}).get("items", [])
+                if not batch:
+                    break
+                titles.extend(item.get("title", "") for item in batch)
+                offset += len(batch)
+            return titles
+        except Exception as exc:
+            log.error("Parcours de la bibliothèque impossible: %s", exc)
+            return []
 
     def control(self, action: str) -> None:
         """action : play | pause | playpause | next | previous | stop"""
