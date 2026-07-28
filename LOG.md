@@ -1,5 +1,15 @@
 # Journal du projet M-Card
 
+## 2026-07-28 — Icônes des boutons moulées dans la façade
+
+Ajout des glyphes ⏮ ⏯ ⏭ en relief (0,6 mm, hauteur 6 mm) au-dessus des trois
+perçages de boutons, entre ceux-ci et la fenêtre LCD. Dessinés en polygones 2D
+extrudés dans `mcard.scad` (paramètres `btn_icon_relief/s/z`) ; la façade étant
+verticale à l'impression, le relief sort sans support. `stl/shell.stl`
+régénéré, aperçus (`assembly_front.png`, nouveau `facade_icons.png`) mis à
+jour. Alternative gravée en creux possible en 2 lignes si le rendu en relief
+ne convient pas.
+
 ## 2026-07-26 (soir) — Résolution tolérante des noms d'albums
 
 **Problème** (constaté avec les premières vraies cartes) : `play_media` de

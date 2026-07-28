@@ -10,7 +10,7 @@ Vue d'ensemble (fond en vue éclatée) :
 
 | Pièce | Orientation d'impression | Rôle |
 |---|---|---|
-| `shell` | **à l'envers** (face supérieure sur le plateau) | corps : façade LCD + boutons, fente CD/vinyle, arrière USB-C |
+| `shell` | **à l'envers** (face supérieure sur le plateau) | corps : façade LCD + boutons (icônes ⏮ ⏯ ⏭ en relief 0,6 mm), fente CD/vinyle, arrière USB-C |
 | `backrest` | couché sur la face avant | dosseret : soutient le CD/vinyle, loge la carte du lecteur ACR122U |
 | `backrest_cover` | à plat | plaque de fermeture arrière du dosseret |
 | `lid` | à plat | fond vissé, plots Raspberry Pi, aérations |

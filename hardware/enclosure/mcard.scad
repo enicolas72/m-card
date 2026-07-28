@@ -47,6 +47,9 @@ lcd_pilot_d     = 2.8;   // vis M3 auto-taraudée
 btn_d           = 12.6;
 btn_spacing     = 32;
 btn_center_z    = 22;
+btn_icon_relief = 0.6;   // relief des icônes ⏮ ⏯ ⏭ sur la façade
+btn_icon_s      = 6;     // hauteur des glyphes
+btn_icon_z      = 36;    // centre des icônes (entre boutons et fenêtre LCD)
 
 // Embase USB-C panneau (arrière)
 usbc_w          = 15;    // découpe oblongue
@@ -99,6 +102,31 @@ module backrest_profile() {
         square([back_w, back_h + back_r], center = false);
 }
 
+/* ------------------- icônes des boutons ------------------- */
+
+module _tri(s, dir) { polygon([[0, -s/2], [0, s/2], [dir*0.87*s, 0]]); }
+
+module _icon_prev(s) {          // ⏮ : barre + deux triangles vers la gauche
+    translate([0.1*s, 0]) {
+        translate([-1.1*s, -s/2]) square([0.22*s, s]);
+        _tri(s, -1);
+        translate([0.9*s, 0]) _tri(s, -1);
+    }
+}
+module _icon_next(s) { mirror([1, 0]) _icon_prev(s); }   // ⏭
+module _icon_playpause(s) {     // ⏯ : triangle + deux barres
+    translate([0.14*s, 0]) {
+        translate([-1.05*s, 0]) _tri(s, 1);
+        translate([0.15*s, -s/2]) square([0.22*s, s]);
+        translate([0.55*s, -s/2]) square([0.22*s, s]);
+    }
+}
+module _btn_icon(i) {
+    if (i == -1) _icon_prev(btn_icon_s);
+    else if (i == 0) _icon_playpause(btn_icon_s);
+    else _icon_next(btn_icon_s);
+}
+
 /* ------------------- corps principal ------------------- */
 
 module shell() {
@@ -119,6 +147,12 @@ module shell() {
             for (x = [-1, 1], y = [-1, 1])
                 translate([x*(box_w/2 - wall - boss_d/2 + 1), y*(box_d/2 - wall - boss_d/2 + 1), 0])
                     cylinder(d = boss_d, h = 14, $fn = fn);
+            // icônes ⏮ ⏯ ⏭ en relief au-dessus des boutons
+            for (i = [-1 : 1])
+                translate([i*btn_spacing, -box_d/2 + 0.5, btn_icon_z])
+                    rotate([90, 0, 0])
+                    linear_extrude(btn_icon_relief + 0.5)
+                    _btn_icon(i);
             // plots de fixation du LCD (autour de la fenêtre, côté intérieur)
             for (x = [-1, 1], z = [-1, 1])
                 translate([x*lcd_hole_dx/2, -box_d/2 + wall, lcd_center_z + z*lcd_hole_dz/2])
