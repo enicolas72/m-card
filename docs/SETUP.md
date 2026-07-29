@@ -62,7 +62,8 @@ Depuis n'importe quel navigateur du réseau local :
 ## 5. Réglages utiles (`/etc/mcard/mcard.yaml`)
 
 - `roon.zone_name` : nom exact de la zone à piloter (sinon première zone).
-- `behavior.on_card_removed` : `pause` (défaut), `stop` ou `none`.
+- `behavior.on_card_removed` : `none` (défaut — l'album continue, boutons
+  actifs), `pause` ou `stop`.
 - `lcd.i2c_address` : `0x27` par défaut ; vérifier avec `i2cdetect -y 1`.
 - Après modification : `sudo systemctl restart mcard`.
 

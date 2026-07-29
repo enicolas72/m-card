@@ -49,11 +49,22 @@ def test_different_card_bypasses_cooldown(app_config, store):
     assert [e.display_name() for e in controller.roon.played] == ["Kind of Blue", "Baltimore"]
 
 
-def test_card_removed_pauses_by_default(app_config, store):
+def test_card_removed_keeps_playing_by_default(app_config, store):
     controller = make_controller(app_config, store)
     controller._handle(CardRemoved(uid="04A1B2C3"))
-    assert controller.roon.controls == ["pause"]
+    assert controller.roon.controls == []          # l'album continue
     assert controller.status["card_uid"] == ""
+
+
+def test_card_removed_pauses_when_configured(tmp_path, store):
+    from mcard.config import AppConfig
+
+    (tmp_path / "mcard.yaml").write_text(
+        "behavior:\n  on_card_removed: pause\n", encoding="utf-8"
+    )
+    controller = make_controller(AppConfig.load(tmp_path), store)
+    controller._handle(CardRemoved(uid="04A1B2C3"))
+    assert controller.roon.controls == ["pause"]
 
 
 def test_buttons_map_to_transport(app_config, store):

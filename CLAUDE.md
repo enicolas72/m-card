@@ -37,7 +37,7 @@ Single event queue, one central controller, one thread per peripheral. Every har
 software/mcard/
   events.py       dataclass events: CardPresented/CardRemoved/ButtonPressed/NowPlaying/RoonConnection/Shutdown
   controller.py   consumes the queue; business rules: known card → play, unknown → auto-add TODO,
-                  card removed → pause/stop/none, buttons → transport. Holds `status` dict for the web UI.
+                  card removed → none (default)/pause/stop, buttons → transport. Holds `status` dict for the web UI.
   config.py       AppConfig (mcard.yaml merged over DEFAULTS) + AlbumStore (albums.yaml, thread-safe,
                   rewrites file with ALBUMS_HEADER on add_todo)
   roon_client.py  supervised reconnect loop; discovery→token pairing→zone resolution; pushes NowPlaying events

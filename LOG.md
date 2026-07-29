@@ -1,5 +1,44 @@
 # Journal du projet M-Card
 
+## 2026-07-29 — Boîtier V0.3 « agitateur magnétique » + retrait de carte non bloquant
+
+**Logiciel** : `behavior.on_card_removed` passe à `none` par défaut (demande
+d'usage d'Eric) — retirer le CD/vinyle laisse l'album continuer, les 3 boutons
+restent actifs ; ⏯ sert de pause. `pause`/`stop` restent configurables.
+46 tests.
+
+**Boîtier — refonte complète en deux itérations** à partir des retours de
+montage du premier prototype (inserts impossibles à positionner, vis LCD
+inaccessibles, socle trop haut, passage USB sous-dimensionné, fente trop
+courte pour un vinyle) :
+
+- **V0.2** : façade rapportée (LCD vissé à plat sur l'établi puis façade
+  vissée sur le corps), poches à inserts filetés à chaque point M3, fente
+  débouchante pleine largeur, passages câble 18×10,5 (prise USB-A surmoulée),
+  hauteur 95 → 68 (boutons en colonne à droite de l'écran, icônes gravées).
+- **V0.3** : silhouette « agitateur magnétique » sur suggestion d'Eric —
+  socle 48 mm (210×150, le Pi loge à plat derrière la fente), console avant
+  inclinée ~34° portant la façade ; l'écran se lit de dessus.
+- **Dosseret** itéré avec Eric : trapèze pleine largeur épaulé sur le socle,
+  coins hauts arrondis (r14), h 84 ; lecteur ACR122U **en paysage** (cavité
+  93×62, décalé de 12 mm pour recentrer l'antenne, câble à droite vers un
+  passage déck décalé) ; intérieur globalement creux (passage câble libre,
+  butées de positionnement de la carte) ; plaque arrière pleine forme,
+  affleurante, sur 4 inserts.
+- **Quincaillerie réelle vérifiée** (fiches fournisseur) : poches d'inserts
+  Ø4,4×7 (Hangtife M3×5×4, reco 4,31-4,35), vis 100 % CHC → lamages
+  cylindriques Ø6,2×3,2 au lieu de fraisages, plaques concernées épaissies à
+  4 mm, dégagement Ø16 au dos des boutons. Une seule longueur de vis (M3×8)
+  pour tout le boîtier.
+
+**Bugs attrapés en route** (leçon : transformations OpenSCAD imbriquées =
+zone à risque ; contrôle systématique par bornes de STL + rendus) : vis du
+dosseret transperçant le flanc (le flanc réel est la tangente au coin
+arrondi, pas le côté du trapèze théorique — recalcul analytique), poches
+d'inserts percées vers l'extérieur, orientation d'impression du dosseret
+inversée (cavité côté plateau), plaque arrière extrudée 21 mm hors position
+(d'où « trous manquants »).
+
 ## 2026-07-29 — Dosseret calé sur les cotes réelles de l'ACR122U
 
 Carte nue mesurée par Eric : 60 × 91 mm (câble sortant par le petit côté,

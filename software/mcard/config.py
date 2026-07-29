@@ -30,8 +30,9 @@ DEFAULTS: dict[str, Any] = {
         "token_file": "/var/lib/mcard/roon_token.txt",
     },
     "behavior": {
-        # Que faire quand on retire le CD/vinyle : pause | stop | none
-        "on_card_removed": "pause",
+        # Que faire quand on retire le CD/vinyle : none (l'album continue,
+        # les boutons restent actifs) | pause | stop
+        "on_card_removed": "none",
         # Ignorer une re-détection de la même carte pendant N secondes
         "redetect_cooldown_s": 3.0,
         # Carte considérée retirée après N secondes sans réponse (lisse le

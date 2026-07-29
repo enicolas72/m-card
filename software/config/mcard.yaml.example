@@ -12,8 +12,10 @@ roon:
   token_file: /var/lib/mcard/roon_token.txt
 
 behavior:
-  # Action quand le CD/vinyle est retiré : pause | stop | none
-  on_card_removed: pause
+  # Action quand le CD/vinyle est retiré :
+  #   none  = l'album continue, les boutons restent actifs (défaut)
+  #   pause = mise en pause / stop = arrêt
+  on_card_removed: none
   # Ignorer une re-détection de la même carte pendant N secondes
   redetect_cooldown_s: 3.0
   # Carte considérée retirée après N secondes sans réponse (lisse le test
