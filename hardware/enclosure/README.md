@@ -40,12 +40,12 @@ done
 
 ## Cotes à vérifier avant impression
 
-Deux mesures dépendent de votre exemplaire précis :
-
-1. **Carte nue de l'ACR122U** (après ouverture de la coque : 4 vis sous les
-   patins). Paramètres `reader_w / reader_h / reader_t` (défaut 95 × 65 × 10 mm).
+1. **Carte nue de l'ACR122U** : mesurée à 60 × 91 mm — logement calé à
+   62 × 93 × 10 mm (`reader_w / reader_h / reader_t`), montage **en portrait,
+   antenne (grande zone plane) vers le bas**, câble vers le haut. Ajuster
+   `reader_t` si l'épaisseur avec composants dépasse 10 mm.
 2. **Embase USB-C panneau** achetée : découpe `usbc_w / usbc_h` et entraxe
-   `usbc_screw_dx`.
+   `usbc_screw_dx` — à vérifier avant d'imprimer le corps.
 
 Imprimez d'abord le `lid` (rapide) pour valider votre calibration de jeu :
 les vis M3 doivent mordre dans les avant-trous de Ø2,8 mm.

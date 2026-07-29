@@ -1,5 +1,15 @@
 # Journal du projet M-Card
 
+## 2026-07-29 — Dosseret calé sur les cotes réelles de l'ACR122U
+
+Carte nue mesurée par Eric : 60 × 91 mm (câble sortant par le petit côté,
+antenne dans la grande zone plane du bas, électronique/module blanc en haut).
+Logement redimensionné 95×65 (paysage) → 62×93 (portrait, jeu de 1 mm par
+côté), bas du logement abaissé de 12 à 8 mm au-dessus de la face supérieure :
+l'antenne se retrouve centrée face à la carte RFID posée dans la fente, le
+câble redescend par la cavité arrière vers le passage du socle.
+`backrest.stl` et `backrest_cover.stl` régénérés, aperçus mis à jour.
+
 ## 2026-07-28 — Icônes des boutons moulées dans la façade
 
 Ajout des glyphes ⏮ ⏯ ⏭ en relief (0,6 mm, hauteur 6 mm) au-dessus des trois

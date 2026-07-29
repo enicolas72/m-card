@@ -58,15 +58,17 @@ usbc_center_z   = 22;
 usbc_screw_dx   = 20;    // entraxe des 2 vis M2
 usbc_screw_d    = 2.3;
 
-// Dosseret + lecteur ACR122U (carte nue ~92x60x8 : ajuster ici si besoin)
+// Dosseret + lecteur ACR122U
+// Carte nue mesurée : 60 x 91 mm. Montage EN PORTRAIT, antenne (grande zone
+// plane) vers le BAS — au plus près de la carte RFID —, câble vers le haut.
 back_w          = 140;   // largeur du dosseret
 back_t          = 24;    // épaisseur
 back_h          = 150;   // hauteur au-dessus de la face supérieure
 back_r          = 14;    // arrondi du sommet
-reader_w        = 95;    // logement carte lecteur (larg.)
-reader_h        = 65;    // logement (haut.)
+reader_w        = 62;    // logement carte lecteur (larg. = 60 + jeu)
+reader_h        = 93;    // logement (haut. = 91 + jeu)
 reader_t        = 10;    // logement (prof.)
-reader_bottom_z = 12;    // bas du logement au-dessus de la face sup.
+reader_bottom_z = 8;     // bas du logement au-dessus de la face sup.
 cable_hole_w    = 14;    // passage du câble mini-USB vers l'intérieur
 cable_hole_d    = 9;
 
