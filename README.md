@@ -5,7 +5,7 @@ se lance sur **Roon**. Boutons physiques ⏮ ⏯ ⏭, écran LCD 20×4 affichant
 l'album et le morceau en cours, interface web locale pour les logs et la
 configuration. Aucune connexion Internet — uniquement le réseau local.
 
-Cahier des charges d'origine : [PROJECT.md](PROJECT.md) · croquis : [versions/idea/](versions/idea/)
+Cahier des charges et croquis d'origine : [versions/idea/](versions/idea/)
 
 **Le prototype 2 en action** (boîtier V0.3, vinyle posé, lecture en cours) :
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). Full spec: `PROJECT.md` (French, read it first); sketches, hardware photos and prototype photos in `versions/`. User-facing docs are in French — keep communication with the user in French.
+**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). Original spec: `versions/idea/PROJECT.md` (French, archival — fully realized); sketches, hardware photos and prototype photos in `versions/`. User-facing docs are in French — keep communication with the user in French.
 
 Hardware: Raspberry Pi 3 B+ (Wi-Fi), ACS ACR122U NFC reader kept on USB (no soldering), LCD 2004A with PCF8574 I2C backpack, 3 GPIO buttons prev/playpause/next (BCM 5/6/13; legacy 4-button names play/pause still map), panel-mount USB-C power. No network access besides local Roon; no auth on the web UI by design.
 

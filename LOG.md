@@ -7,6 +7,8 @@ du matériel) et `proto2/` (photos du prototype) sont regroupés dans
 `versions/`. Renommages faits avec suivi git ; toutes les références des
 docs (README, CLAUDE.md, ASSEMBLY, BOM) mises à jour — les chemins cités
 dans les entrées passées de ce journal restent tels quels (historique).
+Dans la foulée, `PROJECT.md` (cahier des charges d'origine, entièrement
+réalisé) rejoint ses croquis dans `versions/idea/`.
 
 ## 2026-07-31 — Reposer la même carte = ne rien faire ; veille du rétro-éclairage
 
