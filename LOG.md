@@ -1,5 +1,32 @@
 # Journal du projet M-Card
 
+## 2026-07-30 — Icônes couleur ajourées ; dosseret : lecteur logé, câble débouchant
+
+**Icônes en couleur** (idée d'Eric) : les glyphes ⏮ ⏯ ⏭ de la façade
+deviennent des découpes traversantes (peau avant 2 mm) ; un lamage
+16×56×2 dans l'épaisseur au dos reçoit une plaquette imprimée dans une
+couleur contrastée (nouvelle pièce `icon_plate`, 1,8 mm, jeu 0,2/côté,
+collée) — la couleur apparaît en léger retrait. Technique bicolore sans
+multi-matériaux ; possible car les glyphes n'ont aucun îlot. Icônes
+agrandies à 5 mm.
+
+**Deux défauts bloquants du dosseret détectés par Eric au slicing** :
+1. Passage câble « non traversant » : recouvrement de 0,01 mm seulement
+   entre la gaine et la cavité — surface coïncidente refermée en membrane
+   par le slicer. Débouché porté à 2 mm francs.
+2. Lecteur qui ne loge pas : avec le trapèze abaissé (h 84, sommet 90),
+   le flanc réel passait à l'intérieur du coin du lecteur (48,9 mm de
+   demi-largeur à z=70 pour 58,5 requis) — la carte sortait du volume
+   extérieur. Sommet élargi 90 → 126 (minimum géométrique ~125), cavité
+   dotée d'un rectangle explicite garanti 96×63, vis de plaque arrière
+   recalculées ((±93,10)/(±66,58)), mur avant ramené à 3 mm exactement.
+
+**Méthode consolidée** : vérifications par intersections OpenSCAD
+automatiques (carte réelle ∩ dosseret = vide ; pilier traversant le
+passage câble ∩ socle/dosseret = vide) — à rejouer après toute retouche
+du dosseret. La branche `else` de sélection de pièce ne rend plus rien
+pour une valeur inconnue, ce qui permet ces fichiers de contrôle.
+
 ## 2026-07-29 — Boîtier V0.3 « agitateur magnétique » + retrait de carte non bloquant
 
 **Logiciel** : `behavior.on_card_removed` passe à `none` par défaut (demande

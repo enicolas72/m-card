@@ -15,12 +15,15 @@ centre seul), presser au fer à souder (~230 °C pour du PLA), laisser refroidir
 
 ## 2. Façade (à plat, sur l'établi)
 
-1. **LCD** : poser le module sur les 4 plots, dalle dans la fenêtre, visser
+1. **Plaquette couleur** : coller `icon_plate` (couleur contrastée) dans le
+   lamage au dos de la façade, motifs des icônes dessus — un point de
+   cyanoacrylate ou du double-face fin suffit.
+2. **LCD** : poser le module sur les 4 plots, dalle dans la fenêtre, visser
    4 × M3×8 CHC dans les avant-trous Ø2,8 (la vis se taraude dans le PLA) —
    accès direct, la façade est à plat.
-2. **Boutons** : enficher les 3 boutons 12 mm (⏮ en bas, ⏯ au milieu,
+3. **Boutons** : enficher les 3 boutons 12 mm (⏮ en bas, ⏯ au milieu,
    ⏭ en haut — icônes gravées en regard), serrer les écrous.
-3. Câbler LCD et boutons (câbles Dupont, cf. WIRING.md), puis **visser la
+4. Câbler LCD et boutons (câbles Dupont, cf. WIRING.md), puis **visser la
    façade** sur la console inclinée du socle : 4 × M3×8 CHC (têtes noyées
    dans les lamages).
 

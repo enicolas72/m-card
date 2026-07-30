@@ -12,6 +12,7 @@
 //   "faceplate"      façade inclinée LCD + boutons (imprimer face avant sur le plateau)
 //   "backrest"       dosseret porte-lecteur RFID (imprimer couché sur la face avant)
 //   "backrest_cover" plaque arrière du dosseret (à plat)
+//   "icon_plate"     plaquette couleur des icônes (à plat, couleur contrastée)
 //   "lid"            fond vissé, avec plots Raspberry Pi (à plat)
 //   "assembly"       vue d'ensemble (ne pas imprimer)
 //
@@ -79,9 +80,15 @@ lcd_pilot_d     = 2.8;
 btn_d           = 12.6;
 btn_x           = 64;
 btn_s           = [14, 34, 54];   // bas ⏮, milieu ⏯, haut ⏭
-btn_icon_depth  = 0.5;
-btn_icon_s      = 4.5;
-btn_icon_x      = 78;
+// Icônes AJOURÉES : découpes traversantes + plaquette couleur collée dans
+// un lamage au dos de la façade (pièce « icon_plate », couleur contrastée)
+btn_icon_s      = 5;     // taille des glyphes
+btn_icon_x      = 80;    // colonne des icônes, à droite des boutons
+icon_pocket_x0  = 72;    // lamage au dos de la façade
+icon_pocket_x1  = 88;
+icon_pocket_t   = 2;     // profondeur du lamage (peau avant restante : 2 mm)
+icon_pocket_r   = 2;     // congés du lamage
+icon_plate_gap  = 0.2;   // jeu de la plaquette par côté
 
 // Embase USB-C panneau (arrière) — port d'ALIMENTATION
 usbc_w          = 15;
@@ -98,12 +105,12 @@ usbc_screw_d    = 2.3;
 back_w          = box_w; // même largeur que le socle, base d'équerre
 back_t          = 25;    // épaisseur totale (corps 21 + plaque 4)
 back_h          = 84;    // place du lecteur en paysage (8 + 62 + marge cavité)
-back_top_w      = 90;    // largeur du sommet
+back_top_w      = 126;   // largeur du sommet (assez large pour le lecteur en paysage)
 back_top_r      = 14;    // rayon des coins hauts
 back_rim        = 10;    // pourtour plein autour de la cavité (loge les inserts)
 cover_t         = 4;     // épaisseur de la plaque arrière (lamages CHC)
 // vis de la plaque arrière : positions [x, z au-dessus du deck]
-cover_screws    = [[90, 10], [52, 58]];  // dans l'axe du pourtour (flanc = tangente au coin arrondi)
+cover_screws    = [[93, 10], [66, 58]];  // dans l'axe du pourtour (flanc = tangente au coin arrondi)
 reader_w        = 93;    // logement (larg. = 91 + jeu, paysage)
 reader_h        = 62;    // logement (haut. = 60 + jeu)
 reader_off_x    = 12;    // décalage du lecteur : recentre l'antenne, câble à droite
@@ -317,10 +324,13 @@ module faceplate_local() {
         for (s = btn_s)
             translate([btn_x, s, -eps])
                 cylinder(d = btn_d, h = face_t + 2*eps, $fn = fn);
-        // icônes gravées dans la face avant (z = face_t)
+        // lamage au dos pour la plaquette couleur
+        translate([0, 0, -eps]) linear_extrude(icon_pocket_t + eps)
+            icon_pocket_2d(0);
+        // icônes ajourées (traversent la peau avant, la couleur apparaît)
         for (i = [0 : 2])
-            translate([btn_icon_x, btn_s[i], face_t - btn_icon_depth])
-                linear_extrude(btn_icon_depth + eps)
+            translate([btn_icon_x, btn_s[i], icon_pocket_t - eps])
+                linear_extrude(face_t - icon_pocket_t + 2*eps)
                 _btn_icon(i);
         // vis CHC M3 -> inserts du corps (lamage cylindrique)
         for (x = [-1, 1], is = [0, 1])
@@ -333,6 +343,20 @@ module faceplate_local() {
             translate([btn_x, sb, -eps])
                 cylinder(d = 16, h = face_t - 3 + eps, $fn = fn);
     }
+}
+
+// contour 2D du lamage / de la plaquette (inset > 0 : jeu de la plaquette)
+module icon_pocket_2d(inset) {
+    s0 = btn_s[0] - 8;  s1 = btn_s[2] + 8;
+    offset(r = icon_pocket_r, $fn = fn) offset(delta = -icon_pocket_r)
+        translate([icon_pocket_x0 + inset, s0 + inset])
+        square([icon_pocket_x1 - icon_pocket_x0 - 2*inset, s1 - s0 - 2*inset]);
+}
+
+// plaquette couleur à coller dans le lamage (imprimer dans une autre couleur)
+module icon_plate_local() {
+    linear_extrude(icon_pocket_t - 0.2)   // 1,8 mm : affleure une fois collée
+        icon_pocket_2d(icon_plate_gap);
 }
 
 module faceplate() { on_face() faceplate_local(); }
@@ -352,9 +376,14 @@ module backrest_profile() {
 
 // cavité interne : le profil rétréci de back_rim, au-dessus de la bande basse
 module backrest_cavity2d() {
-    difference() {
-        offset(r = -back_rim, $fn = fn) backrest_profile();
-        translate([-back_w/2, -1]) square([back_w, reader_bottom_z + 1]);
+    union() {
+        difference() {
+            offset(r = -back_rim, $fn = fn) backrest_profile();
+            translate([-back_w/2, -1]) square([back_w, reader_bottom_z + 1]);
+        }
+        // logement explicite du lecteur en paysage (garanti quel que soit le pourtour)
+        translate([reader_off_x - reader_w/2 - 1.5, reader_bottom_z])
+            square([reader_w + 3, reader_h + 1]);
     }
 }
 
@@ -374,11 +403,11 @@ module backrest() {
             translate([0, fy + wall, box_h])
                 rotate([90, 0, 0])
                 translate([0, 0, -(body_t - wall + 1)])
-                linear_extrude(body_t - wall + 2)
+                linear_extrude(body_t - wall + 1)
                 backrest_cavity2d();
             // passage du câble vers le socle, côté droit
             translate([cable_off_x, fy + 4 + cable_hole_d/2, box_h - eps])
-                oblong(cable_hole_w, cable_hole_d, reader_bottom_z + 2*eps);
+                oblong(cable_hole_w, cable_hole_d, reader_bottom_z + 2);
             // poches à inserts sous le dosseret (vis venant de l'intérieur du socle)
             for (x = [-1, 1])
                 translate([x*35, fy + back_t/2, box_h])
@@ -481,8 +510,10 @@ if (part == "shell") {
     fy = back_front_y();
     translate([0, 67, 19.5])
         rotate([90, 0, 0]) translate([0, -box_h - reader_bottom_z + 6, -fy - back_t - 2]) backrest_cover();
+} else if (part == "icon_plate") {
+    icon_plate_local();
 } else if (part == "lid") {
     lid();
-} else {
+} else if (part == "assembly") {
     assembly();
 }

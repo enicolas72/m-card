@@ -19,10 +19,11 @@ fente débouchante sur toute la longueur (compatible vinyle), passages
 | Pièce | Orientation d'impression | Rôle |
 |---|---|---|
 | `shell` | **à l'envers** (dessus sur le plateau) | socle : console inclinée ouverte, fente traversante, arrière USB-C |
-| `faceplate` | face avant sur le plateau | façade inclinée : fenêtre LCD + plots, 3 boutons en colonne, icônes gravées |
-| `backrest` | couché sur la face avant | dosseret trapézoïdal pleine largeur (coins hauts arrondis, h 80), intérieur creux : loge la carte ACR122U **en paysage** (93×62, antenne à gauche, câble à droite), butées de positionnement |
+| `faceplate` | face avant sur le plateau | façade inclinée : fenêtre LCD + plots, 3 boutons en colonne, icônes **ajourées** |
+| `backrest` | couché sur la face avant | dosseret trapézoïdal pleine largeur (coins hauts arrondis, h 84, sommet 126), intérieur creux : loge la carte ACR122U **en paysage** (93×62, antenne à gauche, câble à droite), butées de positionnement |
 | `backrest_cover` | à plat | plaque arrière **affleurante**, même forme trapézoïdale que le dosseret |
 | `lid` | à plat | fond vissé, plots Raspberry Pi, aérations |
+| `icon_plate` | à plat, **couleur contrastée** | plaquette collée dans le lamage au dos de la façade : sa couleur apparaît à travers les icônes ajourées |
 
 Les STL sont déjà exportés dans la bonne orientation.
 
@@ -31,8 +32,10 @@ Les STL sont déjà exportés dans la bonne orientation.
 - **Matériau** : PLA (ou PETG). Buse 0,4, couches 0,2 mm, **3 périmètres**,
   remplissage 15 %, **sans support**.
 - Plateau requis : 210 × 150 mm pour le socle.
-- Les icônes de la façade sont **gravées côté plateau** : une surface de
-  plateau texturée les rend particulièrement nettes.
+- Les icônes de la façade sont **ajourées** : imprimer `icon_plate` dans une
+  couleur contrastée et la coller dans le lamage au dos (cyanoacrylate ou
+  double-face fin) — la couleur apparaît au fond des découpes, légèrement
+  en retrait (effet de profondeur).
 
 ## Inserts filetés
 
