@@ -33,10 +33,12 @@ def run(config_dir: Path, fake: bool = False) -> int:
     albums = AlbumStore(config_dir / "albums.yaml")
 
     # --- matériel réel ou simulé -----------------------------------------
+    backlight_timeout = config.get("lcd", "backlight_timeout_s", default=120)
+
     if fake:
         from .fakes import FakeLcdBackend, FakeNfcReader, FakeRoonClient
 
-        display = Display(FakeLcdBackend())
+        display = Display(FakeLcdBackend(), backlight_timeout_s=backlight_timeout)
         controller = Controller(config, albums, display)
         roon = FakeRoonClient(controller.queue)
         nfc = FakeNfcReader(controller.queue)
@@ -59,7 +61,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
             from .fakes import FakeLcdBackend
 
             backend = FakeLcdBackend()
-        display = Display(backend)
+        display = Display(backend, backlight_timeout_s=backlight_timeout)
         controller = Controller(config, albums, display)
         roon = RoonClient(
             controller.queue,

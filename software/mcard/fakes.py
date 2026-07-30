@@ -35,6 +35,9 @@ class FakeLcdBackend(LcdBackend):
                         [f"|{line.ljust(self.cols)[:self.cols]}|" for line in self._lines] +
                         [border]))
 
+    def set_backlight(self, on: bool) -> None:
+        print(f"[LCD] rétro-éclairage {'ON' if on else 'OFF (veille)'}")
+
 
 class FakeNfcReader:
     """Simule le lecteur : saisie d'UID au clavier."""

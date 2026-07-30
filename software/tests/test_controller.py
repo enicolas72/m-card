@@ -91,6 +91,38 @@ def test_now_playing_updates_status_and_display(app_config, store):
     assert "So What" in lcd.rows_content[2]
 
 
+def test_same_album_already_playing_is_not_restarted(app_config, store):
+    controller = make_controller(app_config, store)
+    controller.status.update(state="playing", album="Kind of Blue")
+    controller._handle(CardPresented(uid="04A1B2C3"))
+    assert controller.roon.played == []          # on ne relance pas l'album
+    assert controller.roon.controls == []
+
+
+def test_same_album_paused_resumes(app_config, store):
+    controller = make_controller(app_config, store)
+    controller.status.update(state="paused", album="Kind of Blue")
+    controller._handle(CardPresented(uid="04A1B2C3"))
+    assert controller.roon.played == []
+    assert controller.roon.controls == ["playpause"]
+
+
+def test_different_album_playing_switches(app_config, store):
+    controller = make_controller(app_config, store)
+    controller.status.update(state="playing", album="Abbey Road")
+    controller._handle(CardPresented(uid="04A1B2C3"))
+    assert [e.album for e in controller.roon.played] == ["Kind of Blue"]
+
+
+def test_interactions_wake_backlight(app_config, store):
+    controller = make_controller(app_config, store)
+    lcd = controller._display._backend
+    controller._display._bl_on = False
+    lcd.backlight = False
+    controller._handle(ButtonPressed(name="playpause"))
+    assert lcd.backlight is True
+
+
 def test_play_failure_shows_error(app_config, store):
     controller = make_controller(app_config, store, roon=SpyRoon(play_result=False))
     controller._handle(CardPresented(uid="04A1B2C3"))

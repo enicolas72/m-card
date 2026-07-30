@@ -17,9 +17,13 @@ class MemoryLcd:
 
     def __init__(self):
         self.rows_content = [""] * self.rows
+        self.backlight = True
 
     def write_row(self, row, text):
         self.rows_content[row] = text
+
+    def set_backlight(self, on):
+        self.backlight = on
 
     def close(self):
         pass

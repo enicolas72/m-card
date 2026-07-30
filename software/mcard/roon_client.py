@@ -46,6 +46,13 @@ def _norm(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def titles_match(a: str, b: str) -> bool:
+    """Deux titres d'album désignent-ils le même album ? (tolérant :
+    casse/accents ignorés, inclusion acceptée — « Nevermore » ~ « Nevermore 2023 »)."""
+    na, nb = _norm(a), _norm(b)
+    return bool(na) and bool(nb) and (na == nb or na in nb or nb in na)
+
+
 def best_album_match(target: str, candidates: list[str]) -> tuple[Optional[str], list[str]]:
     """Retrouve `target` dans `candidates` avec tolérance.
 

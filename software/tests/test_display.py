@@ -37,3 +37,26 @@ def test_now_playing_layout():
     assert lcd.rows_content[0].startswith("> playing")
     assert lcd.rows_content[1].startswith("Kind of Blue")
     display.close()
+
+
+def test_backlight_sleeps_after_timeout_and_wakes():
+    lcd = MemoryLcd()
+    display = Display(lcd, backlight_timeout_s=60)
+    assert lcd.backlight is True
+    display._last_wake -= 61                     # simule 61 s d'inactivité
+    with display._lock:
+        display._maybe_sleep_locked(time.monotonic())
+    assert lcd.backlight is False
+    display.wake()
+    assert lcd.backlight is True
+    display.close()
+
+
+def test_backlight_timeout_zero_never_sleeps():
+    lcd = MemoryLcd()
+    display = Display(lcd, backlight_timeout_s=0)
+    display._last_wake -= 10000
+    with display._lock:
+        display._maybe_sleep_locked(time.monotonic())
+    assert lcd.backlight is True
+    display.close()

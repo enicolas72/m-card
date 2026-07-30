@@ -2,7 +2,7 @@
 
 import queue
 
-from mcard.roon_client import RoonClient, best_album_match
+from mcard.roon_client import RoonClient, best_album_match, titles_match
 
 LIBRARY = [
     "The Girl in the Other Room",
@@ -96,3 +96,11 @@ def test_resolve_unknown_returns_none():
     client = make_client()
     api = FakeBrowseApi(["Abbey Road"])
     assert client._resolve_album_title(api, "Inconnu") is None
+
+
+def test_titles_match_tolerant():
+    assert titles_match("Kind of Blue", "kind of blue")
+    assert titles_match("Nevermore", "Nevermore 2023")
+    assert titles_match("L'Emprise", "l\u2019emprise")
+    assert not titles_match("Kind of Blue", "Abbey Road")
+    assert not titles_match("", "Abbey Road")

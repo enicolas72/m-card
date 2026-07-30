@@ -46,6 +46,9 @@ class LcdBackend:
     def write_row(self, row: int, text: str) -> None:  # pragma: no cover
         raise NotImplementedError
 
+    def set_backlight(self, on: bool) -> None:  # pragma: no cover
+        pass
+
     def close(self) -> None:  # pragma: no cover
         pass
 
@@ -72,6 +75,9 @@ class CharLcdBackend(LcdBackend):
         self._lcd.cursor_pos = (row, 0)
         self._lcd.write_string(text.ljust(self.cols)[: self.cols])
 
+    def set_backlight(self, on: bool) -> None:
+        self._lcd.backlight_enabled = on
+
     def close(self) -> None:
         try:
             self._lcd.clear()
@@ -81,13 +87,18 @@ class CharLcdBackend(LcdBackend):
 
 
 class Display:
-    """Affichage 4 lignes avec défilement automatique des lignes trop longues."""
+    """Affichage 4 lignes : défilement automatique des lignes trop longues,
+    mise en veille du rétro-éclairage après `backlight_timeout_s` sans
+    interaction (0 = jamais). wake() rallume et réarme le délai."""
 
-    def __init__(self, backend: LcdBackend):
+    def __init__(self, backend: LcdBackend, backlight_timeout_s: float = 0):
         self._backend = backend
         self._lock = threading.Lock()
         self._lines = [""] * backend.rows
         self._offsets = [0] * backend.rows
+        self._bl_timeout = float(backlight_timeout_s)
+        self._bl_on = True
+        self._last_wake = time.monotonic()
         self._stop = threading.Event()
         self._ticker = threading.Thread(target=self._tick_loop, daemon=True, name="lcd-ticker")
         self._ticker.start()
@@ -122,6 +133,26 @@ class Display:
     def show_error(self, line1: str, line2: str = "") -> None:
         self.set_lines("! " + line1, line2, "", "")
 
+    def wake(self) -> None:
+        """Rallume le rétro-éclairage et réarme le délai de veille."""
+        with self._lock:
+            self._last_wake = time.monotonic()
+            if not self._bl_on:
+                self._bl_on = True
+                try:
+                    self._backend.set_backlight(True)
+                except Exception as exc:
+                    log.error("Rétro-éclairage impossible: %s", exc)
+
+    def _maybe_sleep_locked(self, now: float) -> None:
+        if (self._bl_timeout > 0 and self._bl_on
+                and now - self._last_wake > self._bl_timeout):
+            self._bl_on = False
+            try:
+                self._backend.set_backlight(False)
+            except Exception as exc:
+                log.error("Rétro-éclairage impossible: %s", exc)
+
     def close(self) -> None:
         self._stop.set()
         self._ticker.join(timeout=2)
@@ -149,6 +180,7 @@ class Display:
     def _tick_loop(self) -> None:
         while not self._stop.wait(SCROLL_PERIOD_S):
             with self._lock:
+                self._maybe_sleep_locked(time.monotonic())
                 changed = False
                 for row in range(self._backend.rows):
                     if len(self._lines[row]) > self._backend.cols:

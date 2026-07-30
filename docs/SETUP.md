@@ -65,6 +65,9 @@ Depuis n'importe quel navigateur du réseau local :
 - `behavior.on_card_removed` : `none` (défaut — l'album continue, boutons
   actifs), `pause` ou `stop`.
 - `lcd.i2c_address` : `0x27` par défaut ; vérifier avec `i2cdetect -y 1`.
+- `lcd.backlight_timeout_s` : veille du rétro-éclairage après N s sans
+  interaction (défaut 120 ; 0 = toujours allumé). Toute carte ou bouton
+  le rallume.
 - Après modification : `sudo systemctl restart mcard`.
 
 ## 6. Développement sans Raspberry Pi (mode simulé)

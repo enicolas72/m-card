@@ -17,6 +17,7 @@ import time
 from typing import Optional
 
 from .config import AlbumStore, AppConfig
+from .roon_client import titles_match
 from .events import (
     ButtonPressed,
     CardPresented,
@@ -84,6 +85,9 @@ class Controller:
     # ------------------------------------------------------------------
 
     def _handle(self, event) -> None:
+        # toute interaction physique réveille le rétro-éclairage
+        if isinstance(event, (CardPresented, CardRemoved, ButtonPressed)):
+            self._display.wake()
         if isinstance(event, CardPresented):
             self._handle_card(event.uid)
         elif isinstance(event, CardRemoved):
@@ -133,6 +137,20 @@ class Controller:
             return
 
         self.status.update(card_uid=uid, card_album=entry.display_name())
+
+        # même album que celui en cours : on ne perturbe pas la lecture
+        # (permet de prendre le vinyle en main, le regarder, le reposer)
+        if titles_match(entry.display_name(), self.status.get("album", "")):
+            state = self.status.get("state", "")
+            if state == "playing":
+                log.info("Carte %s : «%s» est déjà en lecture, rien à faire",
+                         uid, entry.display_name())
+                return
+            if state == "paused":
+                log.info("Carte %s : «%s» en pause, reprise", uid, entry.display_name())
+                self.roon.control("playpause")
+                return
+
         self._display.set_lines("Lancement...", entry.display_name(), entry.artist, "")
         if not self.roon.play_album(entry):
             self._display.show_error("Album introuvable", entry.display_name())

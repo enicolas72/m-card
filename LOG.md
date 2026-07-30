@@ -1,5 +1,24 @@
 # Journal du projet M-Card
 
+## 2026-07-31 — Reposer la même carte = ne rien faire ; veille du rétro-éclairage
+
+Deux raffinements d'usage demandés par Eric après quelques jours avec le
+prototype 2 :
+
+1. **Carte identique re-posée** : si l'album de la carte correspond à celui
+   en cours (comparaison tolérante `titles_match` : casse/accents/inclusion),
+   on ne relance rien — en lecture : aucune action ; en pause : reprise par
+   `playpause` (plutôt que repartir piste 1). On peut ainsi prendre le
+   vinyle en main et le reposer sans perturber l'écoute.
+2. **Veille du rétro-éclairage** (`lcd.backlight_timeout_s`, défaut 120 s,
+   0 = jamais) : extinction après N s sans interaction physique (carte
+   posée/retirée, bouton) ; toute interaction rallume et exécute son action.
+   Piloté par `backlight_enabled` de RPLCD (PCF8574), surveillé par le
+   thread ticker du Display ; les changements de piste ne rallument pas.
+
+53 tests (7 nouveaux : non-relance/reprise/changement, réveil par bouton,
+veille et réveil du Display, timeout 0, tolérance de titres).
+
 ## 2026-07-30 (soir) — Prototype 2 assemblé et fonctionnel
 
 Photos ajoutées dans `hardware/proto2/` (et en tête du README) : boîtier

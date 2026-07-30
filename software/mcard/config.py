@@ -44,6 +44,9 @@ DEFAULTS: dict[str, Any] = {
         "i2c_port": 1,
         "cols": 20,
         "rows": 4,
+        # Veille du rétro-éclairage après N secondes sans interaction
+        # (carte posée/retirée, bouton) ; 0 = toujours allumé
+        "backlight_timeout_s": 120,
     },
     "buttons": {
         # Numérotation BCM. Chaque bouton relie la broche GPIO à GND.
