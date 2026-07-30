@@ -18,7 +18,7 @@
 | 3 | Bouton poussoir momentané 12 mm à visser (panel mount) | prev / play-pause / next | Amazon.fr « bouton poussoir 12mm momentané » (lot de 5–10) | ~8 € |
 | 1 | Embase USB-C femelle panneau → micro-USB mâle (câble 25–30 cm) | Port d'alimentation arrière propre | Amazon.fr « USB C panel mount micro USB » | ~8 € |
 | 1 | Lot de câbles Dupont femelle-femelle 20 cm | LCD + boutons ↔ GPIO | Amazon.fr / kit électronique | ~5 € |
-| 14 | Inserts filetés à chaud M3 (type Ruthex Ø4,6×5,7) + vis M3 assorties (10 fraisées, cf. hardware/enclosure/README.md) | Assemblage boîtier V0.2 | Amazon.fr « inserts filetés M3 impression 3D » | ~10 € (lot) |
+| 14 | Inserts filetés à chaud M3 (type Ruthex Ø4,6×5,7) + vis M3 CHC assorties (cf. enclosure/README.md) | Assemblage boîtier V0.2 | Amazon.fr « inserts filetés M3 impression 3D » | ~10 € (lot) |
 
 Alimentation : chargeur USB-C 5 V ⩾ 3 A (type chargeur de téléphone récent) — probablement déjà disponible.
 

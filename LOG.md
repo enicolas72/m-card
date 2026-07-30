@@ -1,5 +1,13 @@
 # Journal du projet M-Card
 
+## 2026-07-31 — Réorganisation des répertoires (par Eric)
+
+`hardware/enclosure/` remonte en `enclosure/` ; `idea/` (croquis et photos
+du matériel) et `proto2/` (photos du prototype) sont regroupés dans
+`versions/`. Renommages faits avec suivi git ; toutes les références des
+docs (README, CLAUDE.md, ASSEMBLY, BOM) mises à jour — les chemins cités
+dans les entrées passées de ce journal restent tels quels (historique).
+
 ## 2026-07-31 — Reposer la même carte = ne rien faire ; veille du rétro-éclairage
 
 Deux raffinements d'usage demandés par Eric après quelques jours avec le

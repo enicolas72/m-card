@@ -1,6 +1,6 @@
 # Assemblage — M-Card (boîtier V0.3)
 
-Prérequis : les 5 pièces imprimées (cf. `hardware/enclosure/README.md`),
+Prérequis : les 6 pièces imprimées (cf. `enclosure/README.md`),
 14 inserts filetés M3, la visserie, et l'électronique **déjà validée sur
 breadboard** (cf. `docs/WIRING.md`).
 

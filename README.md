@@ -5,13 +5,13 @@ se lance sur **Roon**. Boutons physiques ⏮ ⏯ ⏭, écran LCD 20×4 affichant
 l'album et le morceau en cours, interface web locale pour les logs et la
 configuration. Aucune connexion Internet — uniquement le réseau local.
 
-Cahier des charges d'origine : [PROJECT.md](PROJECT.md) · croquis : [idea/](idea/)
+Cahier des charges d'origine : [PROJECT.md](PROJECT.md) · croquis : [versions/idea/](versions/idea/)
 
 **Le prototype 2 en action** (boîtier V0.3, vinyle posé, lecture en cours) :
 
-![M-Card avec un vinyle](hardware/proto2/IMG_0930.jpg)
+![M-Card avec un vinyle](versions/proto2/IMG_0930.jpg)
 
-*Autres photos dans [hardware/proto2/](hardware/proto2/).*
+*Autres photos dans [versions/proto2/](versions/proto2/).*
 
 ```
 CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 3B+ ──► Wi-Fi ──► Roon (Mac)
@@ -28,7 +28,7 @@ CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 
 | [`docs/WIRING.md`](docs/WIRING.md) | câblage complet + [schéma SVG](docs/wiring-diagram.svg) |
 | [`docs/SETUP.md`](docs/SETUP.md) | carte SD, installation, appairage Roon, dépannage |
 | [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | montage dans le boîtier |
-| [`hardware/enclosure/`](hardware/enclosure/) | boîtier 3D paramétrique (OpenSCAD) + STL |
+| [`enclosure/`](enclosure/) | boîtier 3D paramétrique (OpenSCAD) + STL |
 
 ## Démarrage rapide
 
