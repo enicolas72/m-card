@@ -7,6 +7,12 @@ configuration. Aucune connexion Internet — uniquement le réseau local.
 
 Cahier des charges d'origine : [PROJECT.md](PROJECT.md) · croquis : [idea/](idea/)
 
+**Le prototype 2 en action** (boîtier V0.3, vinyle posé, lecture en cours) :
+
+![M-Card avec un vinyle](hardware/proto2/IMG_0930.jpg)
+
+*Autres photos dans [hardware/proto2/](hardware/proto2/).*
+
 ```
 CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 3B+ ──► Wi-Fi ──► Roon (Mac)
                                                    │        │

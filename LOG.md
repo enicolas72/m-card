@@ -1,5 +1,13 @@
 # Journal du projet M-Card
 
+## 2026-07-30 (soir) — Prototype 2 assemblé et fonctionnel
+
+Photos ajoutées dans `hardware/proto2/` (et en tête du README) : boîtier
+V0.3 imprimé en noir, façade inclinée avec LCD (album/morceau affichés),
+boutons métal, icônes couleur visibles à travers les ajours, vinyle posé
+dans la fente et adossé au dosseret trapézoïdal — lecture Roon en cours.
+Le concept du croquis d'origine est matérialisé.
+
 ## 2026-07-30 — Icônes couleur ajourées ; dosseret : lecteur logé, câble débouchant
 
 **Icônes en couleur** (idée d'Eric) : les glyphes ⏮ ⏯ ⏭ de la façade
