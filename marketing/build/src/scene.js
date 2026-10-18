@@ -1,12 +1,12 @@
-// Rendu 3D temps réel de l'appareil : pièces STL exportées depuis
-// enclosure/mcard.scad (position assemblée, cf. build/parts.scad), écran LCD
-// émulé en texture, carte M-Card qui glisse dans la fente.
+// Real-time 3D rendering of the device: STL parts exported from
+// enclosure/mcard.scad (assembled position, see build/parts.scad), LCD
+// emulated as a texture, M-Card sliding into the slot.
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
-// cotes reprises de mcard.scad
+// dimensions taken from mcard.scad
 const BOX_H = 48, LIP = 10, CONSOLE_RUN = 57, SLOT_DEPTH = 28, LID_T = 4;
 const ALPHA = Math.atan((BOX_H - LIP) / CONSOLE_RUN);
 const CARD_W = 54, CARD_H = 86.6, CARD_T = 0.8;
@@ -52,7 +52,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
   controls.maxPolarAngle = 1.45;
   controls.update();
 
-  // lumières : clé chaude, contre-jour froid (rappel de l'écran bleu)
+  // lights: warm key, cool rim (echoing the blue screen)
   const key = new THREE.DirectionalLight(0xfff1e0, 2.4);
   key.position.set(-160, 320, 260);
   key.castShadow = true;
@@ -67,7 +67,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
   const glow = new THREE.PointLight(0x3355ff, 900, 180, 2);
   scene.add(glow);
 
-  // sol : ne reçoit que l'ombre (fond de page visible au travers)
+  // ground: only receives the shadow (page background shows through)
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000),
     new THREE.ShadowMaterial({ opacity: 0.38 }));
   ground.rotation.x = -Math.PI / 2;
@@ -75,7 +75,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // repère OpenSCAD (Z en haut, façade vers -Y) → three (Y en haut, façade vers +Z)
+  // OpenSCAD frame (Z up, front toward -Y) → three (Y up, front toward +Z)
   const device = new THREE.Group();
   device.rotation.x = -Math.PI / 2;
   scene.add(device);
@@ -112,7 +112,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
     device.add(mesh);
   }
 
-  // UV de la dalle : projection dans le plan incliné de la façade
+  // panel UVs: projection onto the sloped plane of the faceplate
   function screenUVs(geometry) {
     const pos = geometry.attributes.position;
     const sDir = new THREE.Vector3(0, Math.cos(ALPHA), Math.sin(ALPHA));
@@ -131,15 +131,15 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
       uv[2 * i + 1] = (p.dot(sDir) - minS) / (maxS - minS);
     }
     geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    // la lumière bleue émane du centre de l'écran, 30 mm devant (le long
-    // de la normale de façade) ; repère scad (x, y, z) → three (x, z, -y)
+    // the blue light comes from the screen center, 30 mm in front (along
+    // the faceplate normal); scad frame (x, y, z) → three (x, z, -y)
     geometry.computeBoundingBox();
     const c = geometry.boundingBox.getCenter(new THREE.Vector3())
       .addScaledVector(new THREE.Vector3(0, -Math.sin(ALPHA), Math.cos(ALPHA)), 30);
     glow.position.set(c.x, c.z, -c.y);
   }
 
-  // carte M-Card : recto = jaquette, verso brun du logo
+  // M-Card: front = artwork, back = the logo's brown
   const texLoader = new THREE.TextureLoader();
   const cardTextures = cards.map((url) => {
     const t = texLoader.load(url);
@@ -153,11 +153,11 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
   const card = new THREE.Mesh(new THREE.BoxGeometry(CARD_W, CARD_H, CARD_T),
     [cardEdge, cardEdge, cardEdge, cardEdge, cardFront, cardBack]);
   card.castShadow = true;
-  card.rotation.x = Math.PI / 2 - 0.035;   // debout dans la fente, très légèrement penchée
+  card.rotation.x = Math.PI / 2 - 0.035;   // standing in the slot, leaning back very slightly
   card.position.set(0, 0, CARD_SEATED_Z);
   device.add(card);
 
-  // ---- animation de changement de carte -----------------------------
+  // ---- card swap animation -----------------------------------------
   let swap = null;   // { start, next, onSeated }
   const LIFT = 130, OUT_MS = 520, IN_MS = 900;
   function showCard(index, onSeated) {
@@ -184,7 +184,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
     }
   }
 
-  // ---- balancement automatique tant que l'utilisateur ne touche à rien
+  // ---- automatic sway as long as the user doesn't touch anything
   let lastInteraction = -1e9;
   controls.addEventListener('start', () => { lastInteraction = performance.now(); });
   controls.addEventListener('end', () => { lastInteraction = performance.now(); });
@@ -195,7 +195,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
     const w = container.clientWidth, h = container.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    // recule la caméra sur écran étroit pour garder l'appareil entier
+    // pull the camera back on narrow screens to keep the whole device
     camera.zoom = Math.min(1, (w / h) / 1.25 + 0.15);
     camera.updateProjectionMatrix();
   }
@@ -222,7 +222,7 @@ export function createDeviceScene(container, { stl, cards, lcd }) {
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
-  // ne rend que lorsque visible
+  // only render while visible
   new IntersectionObserver(([e]) => {
     const was = running;
     running = e.isIntersecting;

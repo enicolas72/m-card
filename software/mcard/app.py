@@ -1,5 +1,5 @@
-"""Assemblage de l'application : instancie les composants (réels ou simulés),
-démarre les threads et lance la boucle du contrôleur.
+"""Application wiring: instantiates the components (real or simulated),
+starts the threads and runs the controller loop.
 """
 
 from __future__ import annotations
@@ -28,11 +28,11 @@ def run(config_dir: Path, fake: bool = False) -> int:
         max_bytes=config.get("log", "max_bytes", default=1_000_000),
         backup_count=config.get("log", "backup_count", default=5),
     )
-    log.info("M-Card v%s démarre (config: %s, fake=%s)", __version__, config_dir, fake)
+    log.info("M-Card v%s starting (config: %s, fake=%s)", __version__, config_dir, fake)
 
     albums = AlbumStore(config_dir / "albums.yaml")
 
-    # --- matériel réel ou simulé -----------------------------------------
+    # --- real or simulated hardware --------------------------------------
     backlight_timeout = config.get("lcd", "backlight_timeout_s", default=120)
 
     if fake:
@@ -57,7 +57,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
                 rows=config.get("lcd", "rows", default=4),
             )
         except Exception as exc:
-            log.error("LCD indisponible (%s) — poursuite sans écran", exc)
+            log.error("LCD unavailable (%s) — continuing without a display", exc)
             from .fakes import FakeLcdBackend
 
             backend = FakeLcdBackend()
@@ -80,7 +80,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
     controller.roon = roon
     display.show_boot(__version__)
 
-    # --- serveur web ------------------------------------------------------
+    # --- web server -------------------------------------------------------
     web_app = create_app(
         config_dir=config_dir,
         log_file=log_file,
@@ -96,17 +96,17 @@ def run(config_dir: Path, fake: bool = False) -> int:
         port=config.get("web", "port", default=8088),
     )
 
-    # --- démarrage --------------------------------------------------------
+    # --- startup ----------------------------------------------------------
     roon.start()
     nfc.start()
     if buttons is not None:
         try:
             buttons.start()
         except Exception as exc:
-            log.error("Boutons GPIO indisponibles (%s) — poursuite sans boutons", exc)
+            log.error("GPIO buttons unavailable (%s) — continuing without buttons", exc)
 
     def _sig_handler(signum, frame):
-        log.info("Signal %s reçu, arrêt...", signum)
+        log.info("Signal %s received, shutting down...", signum)
         controller.shutdown()
 
     signal.signal(signal.SIGTERM, _sig_handler)
@@ -119,6 +119,6 @@ def run(config_dir: Path, fake: bool = False) -> int:
         if buttons is not None:
             buttons.stop()
         roon.stop()
-        display.set_lines("M-Card arrete", "", "", "")
+        display.set_lines("M-Card stopped", "", "", "")
         display.close()
     return 0

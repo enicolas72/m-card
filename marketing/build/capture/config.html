@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M-Card</title>
 <style>
@@ -23,24 +23,23 @@
  td form button { padding: .3rem .8rem; }
 </style></head><body>
 <h1><a href="/">M-Card</a></h1>
-<nav><a href="/">État</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">Recherche</a></nav>
-<h2>albums.yaml</h2><p><a href="/config/albums.yaml/download">télécharger</a></p><form method="post" action="/config/albums.yaml"><textarea name="content" spellcheck="false"># M-Card — table de correspondance carte RFID -&gt; album Roon
+<nav><a href="/">Status</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">Search</a></nav>
+<h2>albums.yaml</h2><p><a href="/config/albums.yaml/download">download</a></p><form method="post" action="/config/albums.yaml"><textarea name="content" spellcheck="false"># M-Card — RFID card -&gt; Roon album mapping
 #
-# Chaque clé est l&#x27;UID hexadécimal de la carte (affiché sur l&#x27;écran LCD et
-# dans les logs quand une carte inconnue est posée).
+# Each key is the card&#x27;s hexadecimal UID (shown on the LCD and in the logs
+# when an unknown card is placed).
 #
-# Formats acceptés pour chaque entrée :
+# Accepted formats for each entry:
 #   &quot;UID&quot;:
-#     album: &quot;Nom exact de l&#x27;album dans Roon&quot;     # requis
-#     artist: &quot;Nom de l&#x27;artiste&quot;                  # optionnel (info)
-#   ou, pour lever une ambiguïté (albums homonymes), un chemin Roon explicite :
+#     path: [&quot;Library&quot;, &quot;Artists&quot;, &quot;Miles Davis&quot;, &quot;Kind of Blue&quot;]   # recommended
+#     artist: &quot;Miles Davis&quot;                                         # optional (info)
+#   or the album title alone (matched tolerantly against the library):
 #   &quot;UID&quot;:
-#     path: [&quot;Library&quot;, &quot;Artists&quot;, &quot;Miles Davis&quot;, &quot;Kind of Blue&quot;]
+#     album: &quot;Kind of Blue&quot;
 #
-# Une entrée `album: TODO` est ajoutée automatiquement quand une carte
-# inconnue est présentée : remplacez TODO par le nom de l&#x27;album, ou mieux,
-# utilisez la page /search de l&#x27;interface web, qui donne (ou écrit
-# directement) le chemin `path:` exact.
+# An `album: TODO` entry is added automatically when an unknown card is
+# placed: pair it from the /search page of the web console, which writes
+# the exact `path:` for you.
 
 &quot;042F9B7AAA4880&quot;:
   path: [&quot;Library&quot;, &quot;Artists&quot;, &quot;Fleetwood Mac&quot;, &quot;Rumours&quot;]
@@ -71,5 +70,5 @@
   artist: &quot;The Cure&quot;
 &quot;042F9B7AAA4889&quot;:
   album: &quot;TODO&quot;
-</textarea><p><button type="submit">Enregistrer</button></p></form>
+</textarea><p><button type="submit">Save</button></p></form>
 </body></html>

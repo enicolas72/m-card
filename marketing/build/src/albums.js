@@ -1,5 +1,5 @@
-// Cartes M-Card utilisées sur la page (jaquettes de card-covers/) et ce que
-// le LCD affiche quand elles sont posées : titre Roon, morceau, artiste.
+// M-Cards shown on the page (artwork from card-covers/) and what the LCD
+// displays when they are placed: Roon title, track, artist.
 export const ALBUMS = [
   { id: 'rumours', album: 'Rumours', track: 'Dreams', artist: 'Fleetwood Mac' },
   { id: 'jarre1', album: 'Electronica 1: The Time Machine', track: 'The Time Machine', artist: 'Jean-Michel Jarre' },

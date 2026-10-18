@@ -3,14 +3,14 @@ from pathlib import Path
 
 import pytest
 
-# rendre le package mcard importable depuis software/
+# make the mcard package importable from software/
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mcard.config import AlbumStore, AppConfig  # noqa: E402
 
 
 class MemoryLcd:
-    """Backend LCD en mémoire pour vérifier ce qui est affiché."""
+    """In-memory LCD backend to check what is displayed."""
 
     cols = 20
     rows = 4
@@ -30,7 +30,7 @@ class MemoryLcd:
 
 
 class SpyRoon:
-    """Client Roon espion : mémorise les appels."""
+    """Spy Roon client: records the calls."""
 
     def __init__(self, play_result=True):
         self.played = []
@@ -65,4 +65,4 @@ def store(albums_file):
 
 @pytest.fixture
 def app_config(tmp_path):
-    return AppConfig.load(tmp_path)  # fichier absent => valeurs par défaut
+    return AppConfig.load(tmp_path)  # missing file => default values

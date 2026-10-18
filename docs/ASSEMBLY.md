@@ -51,7 +51,7 @@ press it in with a soldering iron (~230 °C for PLA), let it cool.
 
 ## 5. Final test
 
-1. Plug in the USB-C charger: "Posez un album" (place an album) appears
+1. Plug in the USB-C charger: "Place an album" appears
    within ~30 s.
 2. Stand a CD case with an RFID card in the slot: Roon starts playing.
 3. Stand a vinyl record: the through slot lets it rest at the bottom of the

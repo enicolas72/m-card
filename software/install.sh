@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Installation de M-Card sur Raspberry Pi OS (Bookworm ou plus récent).
-# À lancer sur le Pi, depuis le dossier software/ : sudo bash install.sh
+# Installs M-Card on Raspberry Pi OS (Bookworm or newer).
+# Run on the Pi, from the software/ folder: sudo bash install.sh
 set -euo pipefail
 
 if [[ $EUID -ne 0 ]]; then
-  echo "Lancer avec sudo : sudo bash install.sh" >&2
+  echo "Run with sudo: sudo bash install.sh" >&2
   exit 1
 fi
 
@@ -12,23 +12,23 @@ SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR=/opt/mcard
 CONF_DIR=/etc/mcard
 
-echo "== Paquets système =="
+echo "== System packages =="
 apt-get update
 apt-get install -y python3-venv python3-dev libusb-1.0-0 i2c-tools swig liblgpio-dev
 
-echo "== Utilisateur de service =="
+echo "== Service user =="
 if ! id mcard &>/dev/null; then
   useradd --system --home-dir /var/lib/mcard --create-home mcard
 fi
-# accès I2C (LCD), GPIO (boutons) et USB (lecteur NFC)
+# I2C (LCD), GPIO (buttons) and USB (NFC reader) access
 usermod -aG i2c,gpio,plugdev mcard || true
 
-echo "== Activation du bus I2C =="
-raspi-config nonint do_i2c 0 || echo "(raspi-config absent ? activer I2C manuellement)"
+echo "== Enabling the I2C bus =="
+raspi-config nonint do_i2c 0 || echo "(raspi-config missing? enable I2C manually)"
 
-echo "== Lecteur ACR122U : liberer le peripherique du pilote noyau =="
+echo "== ACR122U reader: release the device from the kernel driver =="
 cat > /etc/modprobe.d/blacklist-mcard-nfc.conf <<'EOF'
-# Les modules noyau NFC monopolisent l'ACR122U ; nfcpy pilote l'USB en direct.
+# The NFC kernel modules grab the ACR122U; nfcpy drives the USB device directly.
 blacklist pn533_usb
 blacklist pn533
 blacklist nfc
@@ -36,12 +36,12 @@ EOF
 modprobe -r pn533_usb pn533 nfc 2>/dev/null || true
 
 cat > /etc/udev/rules.d/90-mcard-acr122u.rules <<'EOF'
-# ACS ACR122U : accessible au groupe plugdev sans root
+# ACS ACR122U: accessible to the plugdev group without root
 SUBSYSTEM=="usb", ATTRS{idVendor}=="072f", ATTRS{idProduct}=="2200", MODE="0664", GROUP="plugdev"
 EOF
 udevadm control --reload-rules && udevadm trigger || true
 
-echo "== Application Python =="
+echo "== Python application =="
 mkdir -p "$APP_DIR"
 cp -r "$SRC_DIR/mcard" "$APP_DIR/"
 cp "$SRC_DIR/requirements.txt" "$APP_DIR/"
@@ -50,7 +50,7 @@ if [[ ! -d "$APP_DIR/venv" ]]; then
 fi
 "$APP_DIR/venv/bin/pip" install --upgrade pip
 "$APP_DIR/venv/bin/pip" install -r "$APP_DIR/requirements.txt"
-# rendre le package importable depuis le venv
+# make the package importable from the venv
 "$APP_DIR/venv/bin/python" - <<EOF
 import site, pathlib
 site_dir = pathlib.Path(site.getsitepackages()[0] if hasattr(site, "getsitepackages") else "")
@@ -72,15 +72,15 @@ systemctl enable mcard.service
 
 cat <<'EOF'
 
-Installation terminée.
+Installation complete.
 
-Étapes suivantes :
-  1. Éditer /etc/mcard/mcard.yaml si besoin (zone Roon, broches...)
-  2. Démarrer :            sudo systemctl start mcard
-  3. Autoriser l'extension « M-Card » dans Roon -> Settings -> Extensions
-  4. Suivre les logs :     journalctl -u mcard -f
-  5. Interface web :       http://<ip-du-pi>:8088
+Next steps:
+  1. Edit /etc/mcard/mcard.yaml if needed (Roon zone, pins...)
+  2. Start:                sudo systemctl start mcard
+  3. Enable the "M-Card" extension in Roon -> Settings -> Extensions
+  4. Follow the logs:      journalctl -u mcard -f
+  5. Web console:          http://<pi-ip>:8088
 
-Un redémarrage est conseillé au premier install (blacklist modules + I2C) :
+A reboot is recommended after the first install (module blacklist + I2C):
   sudo reboot
 EOF

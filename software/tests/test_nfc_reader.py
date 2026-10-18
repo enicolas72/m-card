@@ -1,8 +1,8 @@
-"""Machine à états présence/absence du lecteur NFC (sans matériel).
+"""Presence/absence state machine of the NFC reader (no hardware).
 
-Reproduit le comportement réel de l'ACR122U avec un tag Mifare Ultralight :
-le test de présence échoue et connect() « voit » la carte par intermittence
-alors qu'elle ne bouge pas. La période de grâce doit lisser ce clignotement.
+Reproduces the real ACR122U behavior with a Mifare Ultralight tag: the
+presence check fails and connect() "sees" the card intermittently while it
+doesn't move. The grace period must smooth out this flickering.
 """
 
 import queue
@@ -41,14 +41,14 @@ def test_first_detection_emits_presented(reader):
 
 
 def test_flapping_same_card_is_silent(reader):
-    """Détections répétées de la même carte (toutes les ~200 ms) : aucun événement."""
+    """Repeated detections of the same card (every ~200 ms): no event."""
     r, events = reader
     r._on_connect(Tag("040B9B7AAA4880"))
     drain(events)
     for _ in range(10):
-        r._on_connect(Tag("040B9B7AAA4880"))  # la carte « clignote »
+        r._on_connect(Tag("040B9B7AAA4880"))  # the card "flickers"
         r._note_tag_seen()
-        r._maybe_emit_removed()               # la grâce n'est jamais dépassée
+        r._maybe_emit_removed()               # the grace period is never exceeded
     assert drain(events) == []
 
 
@@ -56,10 +56,10 @@ def test_removed_only_after_grace(reader):
     r, events = reader
     r._on_connect(Tag("040B9B7AAA4880"))
     drain(events)
-    r._last_seen -= 0.5                        # invisible depuis 0,5 s
+    r._last_seen -= 0.5                        # invisible for 0.5 s
     r._maybe_emit_removed()
-    assert drain(events) == []                 # pas encore retirée
-    r._last_seen -= 0.6                        # invisible depuis 1,1 s
+    assert drain(events) == []                 # not removed yet
+    r._last_seen -= 0.6                        # invisible for 1.1 s
     r._maybe_emit_removed()
     (event,) = drain(events)
     assert isinstance(event, CardRemoved)
@@ -70,7 +70,7 @@ def test_card_swap_emits_removed_then_presented(reader):
     r, events = reader
     r._on_connect(Tag("AAAAAAAA"))
     drain(events)
-    r._on_connect(Tag("BBBBBBBB"))             # autre carte posée directement
+    r._on_connect(Tag("BBBBBBBB"))             # another card placed directly
     removed, presented = drain(events)
     assert isinstance(removed, CardRemoved) and removed.uid == "AAAAAAAA"
     assert isinstance(presented, CardPresented) and presented.uid == "BBBBBBBB"
@@ -81,8 +81,8 @@ def test_represent_after_removal_is_new_presentation(reader):
     r._on_connect(Tag("AAAAAAAA"))
     drain(events)
     r._last_seen -= 2.0
-    r._maybe_emit_removed()                    # vraie absence
+    r._maybe_emit_removed()                    # real absence
     drain(events)
-    r._on_connect(Tag("AAAAAAAA"))             # on repose la même carte
+    r._on_connect(Tag("AAAAAAAA"))             # the same card is placed again
     (event,) = drain(events)
     assert isinstance(event, CardPresented)

@@ -70,10 +70,10 @@ def test_config_save_valid_yaml_triggers_reload(client):
 
 def test_config_save_invalid_yaml_rejected(client):
     original = (client.config_dir / "albums.yaml").read_text(encoding="utf-8")
-    response = client.post("/config/albums.yaml", data={"content": "a: [pas fermé"})
+    response = client.post("/config/albums.yaml", data={"content": "a: [not closed"})
     assert response.status_code == 302
     assert "error" in response.headers["Location"]
-    # le fichier n'a pas été modifié
+    # the file was not modified
     assert (client.config_dir / "albums.yaml").read_text(encoding="utf-8") == original
 
 
@@ -83,7 +83,7 @@ def test_unknown_config_file_404(client):
     assert client.post("/config/autre.yaml", data={"content": "x: 1"}).status_code == 404
 
 
-# ---- recherche + association (page /search) ------------------------------
+# ---- search + assignment (/search page) ---------------------------------
 
 @pytest.fixture
 def search_client(tmp_path):
@@ -119,7 +119,7 @@ def test_search_roon_disconnected(tmp_path):
     app = create_app(config_dir=tmp_path, log_file=tmp_path / "x.log", status_fn=dict,
                      on_albums_saved=lambda: None, search_fn=lambda q: None)
     page = app.test_client().get("/search?q=x").get_data(as_text=True)
-    assert "Roon non connecté" in page
+    assert "Roon not connected" in page
 
 
 def test_assign_writes_path_to_albums_yaml(search_client):
@@ -130,7 +130,7 @@ def test_assign_writes_path_to_albums_yaml(search_client):
     assert "assigned=04AA" in response.headers["Location"]
     entry = search_client.store.lookup("04AA")
     assert entry.path == path and not entry.is_todo
-    search_client.store.reload()  # bien persisté sur disque
+    search_client.store.reload()  # really persisted to disk
     assert search_client.store.lookup("04AA").path == path
 
 

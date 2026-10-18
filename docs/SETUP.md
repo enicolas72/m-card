@@ -42,17 +42,14 @@ sudo systemctl start mcard
 journalctl -u mcard -f
 ```
 
-The device's own interface (LCD and web console) is in French.
-
-1. The LCD shows "M-Card / Demarrage..." (starting), then "Posez un album"
-   (place an album).
+1. The LCD shows "M-Card / Starting...", then "Place an album".
 2. **Enable the extension**: on the Mac, Roon → *Settings* → *Extensions*
    → **Enable** next to "M-Card". (The log shows it waiting.)
 3. Place an RFID card on the reader:
    - unknown card → the LCD shows its UID, and an `album: TODO` entry appears
      in `/etc/mcard/albums.yaml`
    - pair the album: `/search` page of the web console (search →
-     "Associer à cette carte", i.e. assign to this card), or replace `TODO`
+     "Assign to this card"), or replace `TODO`
      by hand in `/etc/mcard/albums.yaml`
    - place the card again → the album starts.
 
@@ -66,7 +63,7 @@ From any browser on the local network:
 | `http://mcard.local:8088/logs` | log (read-only, downloadable) |
 | `http://mcard.local:8088/config` | edit `albums.yaml` and `mcard.yaml` (YAML validated before saving, albums hot-reloaded; every save rewrites `albums.yaml` in the canonical format) |
 | `http://mcard.local:8088/config/albums.yaml/download` | raw file, for backups: `curl -fsS http://mcard.local:8088/config/albums.yaml/download -o albums-$(date +%Y%m%d-%H%M).yaml` |
-| `http://mcard.local:8088/search` | free-text Roon library search → exact `path:` snippet to copy, or "Associer à cette carte" button (TODO cards listed first) |
+| `http://mcard.local:8088/search` | free-text Roon library search → exact `path:` snippet to copy, or "Assign to this card" button (TODO cards listed first) |
 
 ## 5. Useful settings (`/etc/mcard/mcard.yaml`)
 
@@ -99,7 +96,7 @@ it. The LCD is drawn in the terminal and Roon is simulated.
 
 | Symptom | Things to check |
 |---|---|
-| `aucun serveur Roon découvert` (no Roon server found) | same network/VLAN as the Mac? Is Roon running? Try `roon.host: <mac-ip>` |
+| `no Roon server found` | same network/VLAN as the Mac? Is Roon running? Try `roon.host: <mac-ip>` |
 | NFC reader not found | `lsusb` should list `072f:2200`; check the blacklist: `lsmod \| grep pn533` must be empty; reboot |
 | Blank LCD | contrast (potentiometer on the back); `i2cdetect -y 1` → address `27` or `3F` |
 | Garbage characters on the LCD | GND/VCC swapped on the backpack, or SDA/SCL wires too long |

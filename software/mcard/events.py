@@ -1,8 +1,8 @@
-"""Événements échangés entre les threads matériels et le contrôleur central.
+"""Events exchanged between the hardware threads and the central controller.
 
-Tous les composants (NFC, boutons, Roon) poussent des événements dans une
-queue.Queue unique ; le contrôleur les consomme séquentiellement, ce qui
-évite tout verrouillage compliqué.
+Every component (NFC, buttons, Roon) pushes events into a single
+queue.Queue; the controller consumes them sequentially, which avoids any
+complicated locking.
 """
 
 from dataclasses import dataclass, field

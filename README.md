@@ -20,7 +20,6 @@ three push buttons, and a 3D-printed enclosure.
 | [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | assembly into the enclosure |
 | [`enclosure/`](enclosure/) | parametric 3D enclosure (OpenSCAD) + print-ready STLs |
 | [`marketing/`](marketing/) | the presentation page: one self-contained offline HTML file, sources in `marketing/build/` |
-| [`versions/`](versions/) | prototype photos |
 
 ## Build one
 
@@ -29,7 +28,7 @@ three push buttons, and a 3D-printed enclosure.
 3. **Install** on the Pi ([SETUP.md](docs/SETUP.md)): `sudo bash install.sh`.
 4. **Enable** the M-Card extension in Roon → Settings → Extensions.
 5. **Pair cards**: an unknown card shows up as `TODO` in `albums.yaml`. Open
-   `http://mcard.local:8088/search`, find the album, and click *Associer à cette carte* (assign to this card; the device UI is in French).
+   `http://mcard.local:8088/search`, find the album, and click *Assign to this card*.
    This writes an exact Roon path, e.g. `path: ["Library", "Artists", "<artist>", "<album>"]`.
 6. **Print** the enclosure and assemble it ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 

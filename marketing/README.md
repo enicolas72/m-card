@@ -17,8 +17,9 @@ console captures.
   `software/mcard/display.py`.
 - **Web console**: real HTML captures of the interface (`--fake` mode), shown
   frozen in a three-view carousel.
-- Cards cut from `card-covers/` (git-ignored source artwork), prototype
-  photos from `versions/proto2/`.
+- Cards cut from `card-covers/` and prototype photos from `versions/proto2/`
+  (both git-ignored, local only); the lightweight copies used here are in
+  `build/cards/` and `build/img/`.
 
 ## Rebuilding
 

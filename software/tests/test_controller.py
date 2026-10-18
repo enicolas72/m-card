@@ -38,7 +38,7 @@ def test_todo_card_not_played(app_config, store):
 def test_same_card_within_cooldown_ignored(app_config, store):
     controller = make_controller(app_config, store)
     controller._handle(CardPresented(uid="04A1B2C3"))
-    controller._handle(CardPresented(uid="04A1B2C3"))  # re-détection immédiate
+    controller._handle(CardPresented(uid="04A1B2C3"))  # immediate re-detection
     assert len(controller.roon.played) == 1
 
 
@@ -52,7 +52,7 @@ def test_different_card_bypasses_cooldown(app_config, store):
 def test_card_removed_keeps_playing_by_default(app_config, store):
     controller = make_controller(app_config, store)
     controller._handle(CardRemoved(uid="04A1B2C3"))
-    assert controller.roon.controls == []          # l'album continue
+    assert controller.roon.controls == []          # the album keeps playing
     assert controller.status["card_uid"] == ""
 
 
@@ -95,7 +95,7 @@ def test_same_album_already_playing_is_not_restarted(app_config, store):
     controller = make_controller(app_config, store)
     controller.status.update(state="playing", album="Kind of Blue")
     controller._handle(CardPresented(uid="04A1B2C3"))
-    assert controller.roon.played == []          # on ne relance pas l'album
+    assert controller.roon.played == []          # the album is not restarted
     assert controller.roon.controls == []
 
 
@@ -127,4 +127,4 @@ def test_play_failure_shows_error(app_config, store):
     controller = make_controller(app_config, store, roon=SpyRoon(play_result=False))
     controller._handle(CardPresented(uid="04A1B2C3"))
     lcd = controller._display._backend
-    assert "introuvable" in lcd.rows_content[0].lower()
+    assert "not found" in lcd.rows_content[0].lower()

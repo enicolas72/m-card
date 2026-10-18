@@ -1,7 +1,7 @@
-// Émulation du LCD 2004A (HD44780, 20×4, cellules 5×8) : même mise en page
-// et même défilement que software/mcard/display.py.
+// LCD 2004A emulation (HD44780, 20×4, 5×8 cells): same layout and same
+// scrolling as software/mcard/display.py.
 
-// Police 5×7 classique (colonnes, bit 0 = ligne du haut), ASCII 0x20–0x7E.
+// Classic 5×7 font (columns, bit 0 = top row), ASCII 0x20–0x7E.
 const FONT = [
   0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x5F,0x00,0x00, 0x00,0x07,0x00,0x07,0x00, 0x14,0x7F,0x14,0x7F,0x14,
   0x24,0x2A,0x7F,0x2A,0x12, 0x23,0x13,0x08,0x64,0x62, 0x36,0x49,0x55,0x22,0x50, 0x00,0x05,0x03,0x00,0x00,
@@ -43,12 +43,12 @@ export function nowPlayingLines(state, album, track, artist) {
   return [`${STATE_ICONS[state] || '?'} ${state}`, album, track, artist];
 }
 
-// Écran : lignes logiques (éventuellement > 20 car.) + défilement.
+// Screen: logical lines (possibly > 20 chars) + scrolling.
 export class Lcd {
   constructor(canvas, { scale = 4, backlight = true } = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
-    this.scale = scale;           // taille d'un point en px canvas
+    this.scale = scale;           // dot size in canvas px
     this.gap = Math.max(1, Math.round(scale * 0.18));
     this.lines = ['', '', '', ''];
     this.offsets = [0, 0, 0, 0];
@@ -71,7 +71,7 @@ export class Lcd {
     this.draw();
   }
 
-  tick() {  // appelé toutes les 0,6 s (SCROLL_PERIOD_S)
+  tick() {  // called every 0.6 s (SCROLL_PERIOD_S)
     let changed = false;
     this.lines.forEach((l, i) => { if (l.length > COLS) { this.offsets[i]++; changed = true; } });
     if (changed) this.draw();

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Exporte les pièces assemblées (STL binaire) pour la page marketing.
+# Exports the assembled enclosure parts (binary STL) for the marketing page.
 set -euo pipefail
 cd "$(dirname "$0")"
 OPENSCAD=${OPENSCAD:-/opt/homebrew/bin/openscad}

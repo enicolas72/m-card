@@ -19,7 +19,7 @@ def test_partial_override_merges_with_defaults(tmp_path):
 
 
 def test_lookup_known_card(store):
-    entry = store.lookup("04a1b2c3")  # insensible à la casse
+    entry = store.lookup("04a1b2c3")  # case-insensitive
     assert entry is not None
     assert entry.album == "Kind of Blue"
     assert not entry.is_todo
@@ -39,13 +39,13 @@ def test_todo_entry_flag(store):
 def test_add_unknown_card_persists_todo(store, albums_file):
     entry = store.add_todo("aabbccdd")
     assert entry.is_todo
-    # relecture du fichier : l'entrée doit être écrite en majuscules avec TODO
+    # re-read the file: the entry must be written uppercase with TODO
     data = yaml.safe_load(albums_file.read_text(encoding="utf-8"))
     assert data["AABBCCDD"]["album"] == "TODO"
-    # les entrées existantes sont préservées
+    # existing entries are preserved
     assert data["04A1B2C3"]["album"] == "Kind of Blue"
     assert data["0FPATH01"]["path"][-1] == "Baltimore"
-    # l'en-tête explicatif est conservé
+    # the explanatory header is kept
     assert albums_file.read_text(encoding="utf-8").startswith("# M-Card")
 
 
@@ -68,7 +68,7 @@ def test_reload_picks_up_external_edit(store, albums_file):
 def test_saved_format_matches_search_fragment(tmp_path):
     store = AlbumStore(tmp_path / "albums.yaml")
     store.assign("042f9b7aaa4881", ["Library", "Artists", "Angèle", "Instinct"], "Angèle")
-    store.add_todo("0412345678")  # UID tout en chiffres : doit rester une chaîne
+    store.add_todo("0412345678")  # all-digit UID: must stay a string
     body = (tmp_path / "albums.yaml").read_text(encoding="utf-8").split(ALBUMS_HEADER)[1]
     assert body == (
         '\n"0412345678":\n'

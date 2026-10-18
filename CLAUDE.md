@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). Original spec: `versions/idea/PROJECT.md` (French, archival — fully realized; **local only**, `versions/idea/` is git-ignored: the owner's private sketches). Prototype photos in `versions/proto2/`. Root README.md is a short pitch + link to the GitHub Pages presentation https://enicolas72.github.io/m-card/marketing/ — don't duplicate the page's content there. Licensed MIT (`LICENSE`); album artwork in `marketing/build/cards/` is excluded.
+**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). `versions/` is **local only** (git-ignored, the owner's private material): original spec `versions/idea/PROJECT.md` (French, archival, fully realized), sketches, and prototype photos `versions/proto2/` (lightweight copies used by the presentation page live in `marketing/build/img/`). Root README.md is a short pitch + link to the GitHub Pages presentation https://enicolas72.github.io/m-card/marketing/ — don't duplicate the page's content there. Licensed MIT (`LICENSE`); album artwork in `marketing/build/cards/` is excluded.
 
 Hardware: Raspberry Pi 3 B+ (Wi-Fi), ACS ACR122U NFC reader kept on USB (no soldering), LCD 2004A with PCF8574 I2C backpack, 3 GPIO buttons prev/playpause/next (BCM 5/6/13; legacy 4-button names play/pause still map), panel-mount USB-C power. No network access besides local Roon; no auth on the web UI by design.
 
 ## Language
 
-**Everything written in this project is in English**: docs, READMEs, sample configs, code comments and docstrings, log messages, user-facing strings (LCD, web UI), commit messages and new LOG.md entries. Some legacy content is still French (code comments, LCD and web UI strings, older LOG.md entries): write any new or modified text in English, and translate the French you touch. Only the conversation with the user stays in French.
+**Everything written in this project is in English**: docs, READMEs, sample configs, code comments and docstrings, log messages, user-facing strings (LCD, web UI), commit messages and new LOG.md entries. The whole codebase has been translated (2026-10-18); only LOG.md entries before that date remain in French (historical record, leave them). Accented proper nouns in tests (Angèle, Oxygène, the `to_lcd_ascii` sentence) are deliberate test data. Only the conversation with the user stays in French.
 
 ## Commands
 

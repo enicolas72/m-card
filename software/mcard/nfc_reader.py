@@ -1,21 +1,20 @@
-"""Lecture des cartes RFID via l'ACR122U (USB, pilote nfcpy).
+"""Reads RFID cards through the ACR122U (USB, nfcpy driver).
 
-Un thread surveille en continu le lecteur :
-- carte posée   -> CardPresented(uid) dans la queue d'événements
-- carte retirée -> CardRemoved(uid)
+A thread watches the reader continuously:
+- card placed   -> CardPresented(uid) on the event queue
+- card removed  -> CardRemoved(uid)
 
-Particularité importante : avec l'ACR122U, le test de présence de nfcpy
-échoue sur certains tags (Mifare Ultralight notamment) et connect() rend
-la main immédiatement alors que la carte est toujours posée. On lisse donc
-avec une période de grâce : une carte n'est « retirée » que si elle reste
-invisible pendant `removal_grace_s`, et les re-détections de la même carte
-sont silencieuses.
+Important quirk: with the ACR122U, nfcpy's presence check fails on some
+tags (Mifare Ultralight in particular) and connect() returns right away
+while the card is still there. This is smoothed with a grace period: a card
+is only "removed" if it stays invisible for `removal_grace_s`, and
+re-detections of the same card are silent.
 
-Le thread survit aux débranchements/erreurs USB (réouverture avec backoff).
+The thread survives USB unplugs/errors (reopens with backoff).
 
-Prérequis système (voir docs/SETUP.md) : blacklister les modules noyau
-pn533_usb/pn533/nfc qui monopolisent le lecteur, et une règle udev pour
-l'accès sans root.
+System prerequisites (see docs/SETUP.md): blacklist the pn533_usb/pn533/nfc
+kernel modules that grab the reader, and a udev rule for access without
+root.
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ from .events import CardPresented, CardRemoved
 
 log = logging.getLogger(__name__)
 
-POLL_WINDOW_S = 0.3  # durée d'un cycle de détection quand aucune carte n'est posée
+POLL_WINDOW_S = 0.3  # length of a detection cycle when no card is present
 
 
 class NfcReader:
@@ -50,25 +49,25 @@ class NfcReader:
         self._stop.set()
         self._thread.join(timeout=3)
 
-    # ---- machine à états présence/absence (testable sans matériel) ----
+    # ---- presence/absence state machine (testable without hardware) ----
 
     def _on_connect(self, tag) -> bool:
         try:
             uid = tag.identifier.hex().upper()
         except Exception:
-            log.warning("Tag sans identifiant lisible: %r", tag)
+            log.warning("Tag without a readable identifier: %r", tag)
             return False
         now = time.monotonic()
         if uid != self._current_uid:
             if self._current_uid is not None:
                 self._queue.put(CardRemoved(uid=self._current_uid))
-                log.info("Carte retirée: %s (remplacée)", self._current_uid)
+                log.info("Card removed: %s (replaced)", self._current_uid)
             self._current_uid = uid
             self._queue.put(CardPresented(uid=uid))
-            log.info("Carte détectée: %s (%s)", uid, tag)
-        # même carte revue pendant la période de grâce : silencieux
+            log.info("Card detected: %s (%s)", uid, tag)
+        # same card seen again during the grace period: silent
         self._last_seen = now
-        return True  # garder la connexion tant que la carte répond
+        return True  # keep the connection while the card answers
 
     def _note_tag_seen(self) -> None:
         self._last_seen = time.monotonic()
@@ -79,25 +78,25 @@ class NfcReader:
         now = time.monotonic() if now is None else now
         if now - self._last_seen > self._grace:
             self._queue.put(CardRemoved(uid=self._current_uid))
-            log.info("Carte retirée: %s", self._current_uid)
+            log.info("Card removed: %s", self._current_uid)
             self._current_uid = None
 
-    # ---- boucle matérielle -------------------------------------------
+    # ---- hardware loop ------------------------------------------------
 
     def _run(self) -> None:
-        import nfc  # import paresseux (indisponible hors Pi)
+        import nfc  # lazy import (unavailable off the Pi)
 
         backoff = 1.0
         while not self._stop.is_set():
             clf = None
             try:
                 clf = nfc.ContactlessFrontend(self._device)
-                log.info("Lecteur NFC ouvert: %s", clf)
+                log.info("NFC reader opened: %s", clf)
                 backoff = 1.0
                 self._poll_loop(clf)
             except Exception as exc:
                 if not self._stop.is_set():
-                    log.error("Erreur lecteur NFC (%s), nouvel essai dans %.0fs", exc, backoff)
+                    log.error("NFC reader error (%s), retrying in %.0fs", exc, backoff)
                     self._stop.wait(backoff)
                     backoff = min(backoff * 2, 30.0)
             finally:
@@ -107,16 +106,16 @@ class NfcReader:
                     except Exception:
                         pass
                 if self._current_uid is not None:
-                    # lecteur perdu alors qu'une carte était posée
+                    # reader lost while a card was present
                     self._queue.put(CardRemoved(uid=self._current_uid))
                     self._current_uid = None
 
     def _poll_loop(self, clf) -> None:
         while not self._stop.is_set():
             started = time.monotonic()
-            # connect() bloque tant que la carte répond (on_connect -> True) ;
-            # avec les tags au test de présence défaillant, il rend la main
-            # très vite : la période de grâce fait le tri.
+            # connect() blocks while the card answers (on_connect -> True);
+            # with tags whose presence check is flaky it returns very
+            # quickly: the grace period sorts it out.
             tag = clf.connect(
                 rdwr={
                     "on-connect": self._on_connect,

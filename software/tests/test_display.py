@@ -21,11 +21,11 @@ def test_short_lines_padded_to_width():
 def test_long_line_scrolls():
     lcd = MemoryLcd()
     display = Display(lcd)
-    long_title = "Un titre d'album vraiment beaucoup trop long pour un 20x4"
+    long_title = "An album title that is really far too long for a 20x4"
     display.set_lines(long_title, "", "", "")
     first = lcd.rows_content[0]
     assert len(first) == 20
-    time.sleep(1.5)  # laisser le ticker défiler
+    time.sleep(1.5)  # let the ticker scroll
     assert lcd.rows_content[0] != first
     display.close()
 
@@ -43,7 +43,7 @@ def test_backlight_sleeps_after_timeout_and_wakes():
     lcd = MemoryLcd()
     display = Display(lcd, backlight_timeout_s=60)
     assert lcd.backlight is True
-    display._last_wake -= 61                     # simule 61 s d'inactivité
+    display._last_wake -= 61                     # simulate 61 s of inactivity
     with display._lock:
         display._maybe_sleep_locked(time.monotonic())
     assert lcd.backlight is False

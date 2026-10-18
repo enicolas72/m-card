@@ -1,4 +1,4 @@
-"""Configuration du logging : fichier rotatif + console (journalctl)."""
+"""Logging setup: rotating file + console (journalctl)."""
 
 from __future__ import annotations
 
@@ -27,6 +27,6 @@ def setup_logging(log_file: str | Path, level: str = "INFO",
     console.setFormatter(logging.Formatter(FORMAT))
     root.addHandler(console)
 
-    # le serveur web intégré est bavard sur chaque requête
+    # the built-in web server is chatty on every request
     logging.getLogger("werkzeug").setLevel(logging.WARNING)
     return log_file

@@ -1,5 +1,31 @@
 # M-Card project log
 
+## 2026-10-18 18:19 — Full English translation; versions/ untracked
+
+- **Whole codebase translated to English** (split across three parallel
+  agents on disjoint files, then checked together): Python modules, tests,
+  `install.sh`, systemd unit, `requirements.txt`, OpenSCAD comments,
+  marketing sources. User-facing strings too:
+  - LCD: "Starting...", "Place an album", "Unknown card" / "Added to" /
+    "albums.yaml (TODO)", "Card to set up" / "Edit albums.yaml" /
+    "via the web UI", "! Album not found", "! Roon unreachable";
+    every line stays ASCII and ≤ 20 chars.
+  - Web console: Status / Logs / Configuration / Search, Save, Search,
+    "Assign to this card", English `ALBUMS_HEADER` (same as
+    `albums.yaml.example`).
+  - Fake mode: "Track 1", "simulated"; the fake Roon now rejects albums
+    containing "notfound" (was "introuvable").
+- Docs updated to quote the new English UI strings.
+- Marketing page: console recaptured in English (fresh canonical
+  `albums.yaml`), build substitutions updated, page rebuilt; geometry
+  unchanged (re-exported STL byte-identical).
+- Deliberately left: LOG.md entries before today (history) and accented
+  proper nouns used as test data.
+- **`versions/` fully untracked** (git-ignored, kept locally, history not
+  rewritten); README/CLAUDE.md references removed. The page keeps its own
+  photo copies in `marketing/build/img/`.
+- 73 tests pass.
+
 ## 2026-10-18 18:11 — English docs, short README, MIT license, private sketches
 
 - **GitHub Pages** enabled (by Eric): the presentation page is live at

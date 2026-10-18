@@ -1,4 +1,4 @@
-"""Point d'entrée : python -m mcard [--config DIR] [--fake]"""
+"""Entry point: python -m mcard [--config DIR] [--fake]"""
 
 import argparse
 import sys
@@ -11,18 +11,18 @@ from .app import run
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="mcard",
-        description="M-Card — lance un album Roon en posant un CD/vinyle à carte RFID",
+        description="M-Card — plays a Roon album when an RFID-tagged CD/vinyl is placed",
     )
     parser.add_argument(
         "--config",
         type=Path,
         default=Path("/etc/mcard"),
-        help="répertoire contenant mcard.yaml et albums.yaml (défaut: /etc/mcard)",
+        help="directory containing mcard.yaml and albums.yaml (default: /etc/mcard)",
     )
     parser.add_argument(
         "--fake",
         action="store_true",
-        help="matériel simulé (développement sans Raspberry Pi)",
+        help="simulated hardware (development without a Raspberry Pi)",
     )
     parser.add_argument("--version", action="version", version=f"mcard {__version__}")
     args = parser.parse_args()

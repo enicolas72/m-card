@@ -1,71 +1,71 @@
 // ============================================================
-// M-Card — boîtier imprimable 3D (V0.3 « agitateur magnétique »)
+// M-Card — 3D-printable enclosure (V0.3 "magnetic stirrer")
 // ============================================================
-// V0.3 : socle bas (48 mm) avec console AVANT INCLINÉE (~34°) portant la
-// façade LCD + boutons, à la manière d'un agitateur magnétique de labo.
-// Conserve les acquis V0.2 : façade rapportée, poches à inserts M3, fente
-// débouchante toute longueur (vinyle), passages câble USB-A élargis.
-// Le Raspberry Pi loge à plat DERRIÈRE la fente (d'où box_d 150).
+// V0.3: low base (48 mm) with a SLOPED FRONT console (~34°) carrying the
+// LCD + buttons faceplate, like a lab magnetic stirrer.
+// Keeps what V0.2 got right: separate faceplate, M3 insert pockets, slot
+// running the full length (vinyl), widened USB-A cable passages.
+// The Raspberry Pi lies flat BEHIND the slot (hence box_d 150).
 //
-// Pièces (variable `part`) :
-//   "shell"          corps principal (imprimer À L'ENVERS, dessus sur le plateau)
-//   "faceplate"      façade inclinée LCD + boutons (imprimer face avant sur le plateau)
-//   "backrest"       dosseret porte-lecteur RFID (imprimer couché sur la face avant)
-//   "backrest_cover" plaque arrière du dosseret (à plat)
-//   "icon_plate"     plaquette couleur des icônes (à plat, couleur contrastée)
-//   "lid"            fond vissé, avec plots Raspberry Pi (à plat)
-//   "assembly"       vue d'ensemble (ne pas imprimer)
+// Parts (`part` variable):
+//   "shell"          main body (print UPSIDE DOWN, top on the bed)
+//   "faceplate"      sloped LCD + buttons faceplate (print front face on the bed)
+//   "backrest"       RFID reader backrest (print lying on its front face)
+//   "backrest_cover" backrest back plate (flat)
+//   "icon_plate"     color plate for the icons (flat, contrasting color)
+//   "lid"            screwed bottom with Raspberry Pi posts (flat)
+//   "assembly"       overall view (do not print)
 //
-// Rendu CLI : openscad -o stl/shell.stl -D 'part="shell"' mcard.scad
-// PLA/PETG, 3 périmètres, 15 %, sans support.
+// CLI render: openscad -o stl/shell.stl -D 'part="shell"' mcard.scad
+// PLA/PETG, 3 perimeters, 15 %, no supports.
 // ============================================================
 
 part = "assembly";
 
-/* ------------------- paramètres principaux ------------------- */
+/* ------------------- main parameters ------------------- */
 
-wall        = 3;      // épaisseur des parois
-box_w       = 210;    // largeur externe (X)
-box_d       = 150;    // profondeur externe (Y)
-box_h       = 48;     // hauteur du socle (Z) — le « deck »
-corner_r    = 6;      // rayon des angles verticaux
+wall        = 3;      // wall thickness
+box_w       = 210;    // outer width (X)
+box_d       = 150;    // outer depth (Y)
+box_h       = 48;     // base height (Z), the "deck"
+corner_r    = 6;      // radius of the vertical corners
 
-// Console avant inclinée
-lip         = 10;     // hauteur de la lèvre verticale avant
-console_run = 57;     // profondeur horizontale de la console
-// angle de la face par rapport à l'horizontale :
-alpha       = atan((box_h - lip)/console_run);          // ~33,7°
-face_len    = norm([console_run, box_h - lip]);         // longueur de la pente (~68,5)
+// Sloped front console
+lip         = 10;     // height of the vertical front lip
+console_run = 57;     // horizontal depth of the console
+// angle of the face from horizontal:
+alpha       = atan((box_h - lip)/console_run);          // ~33.7°
+face_len    = norm([console_run, box_h - lip]);         // slope length (~68.5)
 
-// Fente CD / vinyle — débouchante sur toute la largeur, centrée en y=0
+// CD / vinyl slot, open across the full width, centered at y=0
 slot_w          = 14;
 slot_depth      = 28;
 slot_center_y   = 0;
 slot_wall       = 2.5;
 slot_chamfer    = 5;
 
-// Inserts filetés M3 Hangtife M3x5x4 (OD 5,0, long. 4,0) :
-// trou recommandé Ø4,31-4,35, borgne min 5,0 — Ø4,4 imprimé ~ 4,3 réel
+// Hangtife M3x5x4 threaded inserts (OD 5.0, length 4.0):
+// recommended hole Ø4.31-4.35, blind min 5.0; printed Ø4.4 ~ 4.3 actual
 insert_d        = 4.4;
-insert_depth    = 7;     // > min 5 : laisse du vide pour le dépassement de vis
-insert_cham     = 1.0;   // cône d'entrée : centre l'insert (tête Ø5,0)
-// Vis M3 CHC (tête cylindrique Ø5,5 x 3) : lamage, pas de fraisage
-screw_cb_d      = 6.2;   // Ø du lamage
-screw_cb_h      = 3.2;   // profondeur du lamage (tête affleurante)
+insert_depth    = 7;     // > min 5: leaves room for the screw tip
+insert_cham     = 1.0;   // entry cone: centers the insert (head Ø5.0)
+// M3 socket head cap screws (Ø5.5 x 3 head): counterbore, not countersink
+screw_cb_d      = 6.2;   // counterbore Ø
+screw_cb_h      = 3.2;   // counterbore depth (flush head)
 
-// Façade (repère local : x = largeur, s = le long de la pente, z = normale
-// à la face, 0 = surface externe de la console, +z vers l'extérieur)
+// Faceplate (local frame: x = width, s = along the slope, z = normal to
+// the face, 0 = outer surface of the console, +z pointing outward)
 face_w          = 200;
-plate_s0        = 1.2;   // bord bas de la plaque (coordonnée s)
-plate_s1        = 67.2;  // bord haut
-face_t          = 4;     // 4 mm : loge le lamage des têtes CHC
+plate_s0        = 1.2;   // bottom edge of the plate (s coordinate)
+plate_s1        = 67.2;  // top edge
+face_t          = 4;     // 4 mm: fits the socket head counterbores
 face_r          = 3;
 face_screw_x    = 93;
 face_screw_s    = [8, 60];
-// ouverture dans la paroi inclinée (laisse passer LCD + boutons)
+// opening in the sloped wall (lets the LCD + buttons through)
 open_x0 = -63;  open_x1 = 75;  open_s0 = 2;  open_s1 = 65.5;
 
-// Écran LCD 2004A (module 98x60, trous 93x55, fenêtre utile ~97x40)
+// LCD 2004A (98x60 module, 93x55 holes, ~97x40 visible window)
 lcd_center_x    = -10;
 lcd_center_s    = 34;
 lcd_window_w    = 99;
@@ -76,60 +76,60 @@ lcd_post_d      = 7;
 lcd_post_h      = 6;
 lcd_pilot_d     = 2.8;
 
-// Boutons 12 mm — colonne le long de la pente, à droite de l'écran
+// 12 mm buttons: a column along the slope, right of the screen
 btn_d           = 12.6;
 btn_x           = 64;
-btn_s           = [14, 34, 54];   // bas ⏮, milieu ⏯, haut ⏭
-// Icônes AJOURÉES : découpes traversantes + plaquette couleur collée dans
-// un lamage au dos de la façade (pièce « icon_plate », couleur contrastée)
-btn_icon_s      = 5;     // taille des glyphes
-btn_icon_x      = 80;    // colonne des icônes, à droite des boutons
-icon_pocket_x0  = 72;    // lamage au dos de la façade
+btn_s           = [14, 34, 54];   // bottom ⏮, middle ⏯, top ⏭
+// CUT-THROUGH icons: through cut-outs + a color plate glued into a recess
+// at the back of the faceplate ("icon_plate" part, contrasting color)
+btn_icon_s      = 5;     // glyph size
+btn_icon_x      = 80;    // icon column, right of the buttons
+icon_pocket_x0  = 72;    // recess at the back of the faceplate
 icon_pocket_x1  = 88;
-icon_pocket_t   = 2;     // profondeur du lamage (peau avant restante : 2 mm)
-icon_pocket_r   = 2;     // congés du lamage
-icon_plate_gap  = 0.2;   // jeu de la plaquette par côté
+icon_pocket_t   = 2;     // recess depth (remaining front skin: 2 mm)
+icon_pocket_r   = 2;     // recess fillets
+icon_plate_gap  = 0.2;   // plate clearance per side
 
-// Embase USB-C panneau (arrière) — port d'ALIMENTATION
+// Panel-mount USB-C socket (rear): POWER input
 usbc_w          = 15;
 usbc_h          = 8;
 usbc_center_z   = 22;
 usbc_screw_dx   = 20;
 usbc_screw_d    = 2.3;
 
-// Dosseret + lecteur ACR122U (carte nue 60x91, EN PAYSAGE : antenne — la
-// grande zone plane — vers la gauche, câble sortant à droite)
-// Trapèze pleine largeur épaulé sur le socle, coins hauts arrondis,
-// intérieur globalement creux (passage de câble libre), fermé par une
-// plaque arrière de même forme, affleurante.
-back_w          = box_w; // même largeur que le socle, base d'équerre
-back_t          = 25;    // épaisseur totale (corps 21 + plaque 4)
-back_h          = 84;    // place du lecteur en paysage (8 + 62 + marge cavité)
-back_top_w      = 126;   // largeur du sommet (assez large pour le lecteur en paysage)
-back_top_r      = 14;    // rayon des coins hauts
-back_rim        = 10;    // pourtour plein autour de la cavité (loge les inserts)
-cover_t         = 4;     // épaisseur de la plaque arrière (lamages CHC)
-// vis de la plaque arrière : positions [x, z au-dessus du deck]
-cover_screws    = [[93, 10], [66, 58]];  // dans l'axe du pourtour (flanc = tangente au coin arrondi)
-reader_w        = 93;    // logement (larg. = 91 + jeu, paysage)
-reader_h        = 62;    // logement (haut. = 60 + jeu)
-reader_off_x    = 12;    // décalage du lecteur : recentre l'antenne, câble à droite
+// Backrest + ACR122U reader (bare 60x91 board, IN LANDSCAPE: antenna, the
+// large flat area, to the left; cable exiting on the right)
+// Full-width trapezoid resting on the base, rounded top corners, mostly
+// hollow inside (free cable path), closed by a flush back plate of the
+// same shape.
+back_w          = box_w; // same width as the base, square bottom
+back_t          = 25;    // total thickness (body 21 + plate 4)
+back_h          = 84;    // room for the reader in landscape (8 + 62 + cavity margin)
+back_top_w      = 126;   // top width (wide enough for the reader in landscape)
+back_top_r      = 14;    // top corner radius
+back_rim        = 10;    // solid rim around the cavity (holds the inserts)
+cover_t         = 4;     // back plate thickness (socket head counterbores)
+// back plate screws: positions [x, z above the deck]
+cover_screws    = [[93, 10], [66, 58]];  // on the rim centerline (side = tangent to the rounded corner)
+reader_w        = 93;    // pocket (width = 91 + clearance, landscape)
+reader_h        = 62;    // pocket (height = 60 + clearance)
+reader_off_x    = 12;    // reader offset: centers the antenna, cable on the right
 reader_bottom_z = 8;
-cable_off_x     = 50;    // passage USB décalé côté câble (droite)
+cable_off_x     = 50;    // USB passage offset to the cable side (right)
 
-// Passage du câble USB-A du lecteur (prise surmoulée ~16x8 mm)
+// Passage for the reader's USB-A cable (molded plug ~16x8 mm)
 cable_hole_w    = 18;
 cable_hole_d    = 10.5;
 
-// Assemblage
+// Assembly
 boss_d          = 10;
-boss_h          = 10;    // limité par la console au-dessus des bosses avant
+boss_h          = 10;    // limited by the console above the front bosses
 lid_screw_d     = 3.4;
-lid_t           = 4;     // 4 mm : loge le lamage des têtes CHC
+lid_t           = 4;     // 4 mm: fits the socket head counterbores
 peg_d           = 5;
 peg_h           = 5;
 
-// Raspberry Pi 3B+ (58 x 49, M2.5) — à plat derrière la fente
+// Raspberry Pi 3B+ (58 x 49, M2.5), flat behind the slot
 pi_hole_dx      = 58;
 pi_hole_dy      = 49;
 pi_post_d       = 6;
@@ -139,7 +139,7 @@ pi_pos          = [-30, 19];
 fn = 48;
 eps = 0.01;
 
-/* ------------------- utilitaires ------------------- */
+/* ------------------- helpers ------------------- */
 
 module rounded_box(w, d, h, r) {
     hull()
@@ -147,7 +147,7 @@ module rounded_box(w, d, h, r) {
             translate([x, y, 0]) cylinder(r = r, h = h, $fn = fn);
 }
 
-// poche pour insert fileté M3 (entrée en z=0, s'enfonce en +z)
+// pocket for an M3 threaded insert (entry at z=0, goes toward +z)
 module insert_pocket() {
     translate([0, 0, -eps]) {
         cylinder(d = insert_d, h = insert_depth + eps, $fn = fn);
@@ -184,14 +184,14 @@ module _btn_icon(i) {
     else _icon_next(btn_icon_s);
 }
 
-// place les enfants dans le repère de la face inclinée :
-// x = largeur, y = s (le long de la pente), z = normale externe
+// places the children in the sloped-face frame:
+// x = width, y = s (along the slope), z = outward normal
 module on_face() {
     translate([0, -box_d/2, lip]) rotate([alpha, 0, 0]) children();
 }
 
-// prisme au-dessus de la ligne de pente (profil yz), pleine largeur
-// dz : décalage vertical de la ligne (0 = surface externe)
+// prism above the slope line (yz profile), full width
+// dz: vertical offset of the line (0 = outer surface)
 module wedge_cutter(dz = 0) {
     m = (box_h - lip)/console_run;
     translate([-(box_w/2 + 5), 0, 0])
@@ -206,19 +206,19 @@ module wedge_cutter(dz = 0) {
         ]);
 }
 
-/* ------------------- corps principal ------------------- */
+/* ------------------- main body ------------------- */
 
 function back_front_y() = slot_center_y + slot_w/2 + slot_wall;
 
 module shell() {
-    inner_dz = -wall * face_len / console_run;  // plan interne (paroi normale = wall)
+    inner_dz = -wall * face_len / console_run;  // inner plane (wall thickness = wall, measured normal)
     difference() {
         union() {
-            // coque : boîte - console - cavité interne
+            // shell: box - console - inner cavity
             difference() {
                 rounded_box(box_w, box_d, box_h, corner_r);
                 wedge_cutter(0);
-                // cavité interne (sous le plan incliné interne)
+                // inner cavity (below the inner sloped plane)
                 difference() {
                     translate([0, 0, -eps])
                         rounded_box(box_w - 2*wall, box_d - 2*wall,
@@ -226,23 +226,23 @@ module shell() {
                     wedge_cutter(inner_dz);
                 }
             }
-            // canal interne de la fente — toute la largeur
+            // inner slot channel, full width
             translate([-box_w/2,
                        slot_center_y - slot_w/2 - slot_wall,
                        box_h - wall - slot_depth - slot_wall])
                 cube([box_w, slot_w + 2*slot_wall, slot_depth + slot_wall]);
-            // bosses de vissage du fond
+            // bottom screw bosses
             for (x = [-1, 1], y = [-1, 1])
                 translate([x*(box_w/2 - wall - boss_d/2 + 1), y*(box_d/2 - wall - boss_d/2 + 1), 0])
                     cylinder(d = boss_d, h = boss_h, $fn = fn);
-            // pastilles à insert derrière la paroi inclinée (fixation façade)
+            // insert pads behind the sloped wall (faceplate mounting)
             for (x = [-1, 1], is = [0, 1])
                 on_face()
                     translate([x*face_screw_x, face_screw_s[is], -wall - 6])
                         cylinder(d = 10, h = 6 + eps, $fn = fn);
         }
 
-        // fente débouchante + chanfrein
+        // through slot + chamfer
         translate([-box_w/2 - 1, slot_center_y - slot_w/2, box_h - wall - slot_depth])
             cube([box_w + 2, slot_w, slot_depth + wall + eps]);
         translate([0, slot_center_y, box_h])
@@ -253,18 +253,18 @@ module shell() {
                     cube([box_w + 2, slot_w, eps], center = true);
             }
 
-        // ouverture de la face inclinée (LCD + boutons)
+        // opening in the sloped face (LCD + buttons)
         on_face()
             translate([open_x0, open_s0, -wall - 4])
                 cube([open_x1 - open_x0, open_s1 - open_s0, wall + 8]);
 
-        // poches à inserts de la façade (pressés depuis l'avant)
+        // faceplate insert pockets (pressed in from the front)
         for (x = [-1, 1], is = [0, 1])
             on_face()
                 translate([x*face_screw_x, face_screw_s[is], 0])
                     rotate([180, 0, 0]) insert_pocket();
 
-        // embase USB-C arrière (alimentation)
+        // rear USB-C socket (power)
         translate([0, box_d/2 + eps, usbc_center_z]) rotate([90, 0, 0]) {
             oblong(usbc_w, usbc_h, wall + 2*eps);
             for (x = [-1, 1])
@@ -272,12 +272,12 @@ module shell() {
                     cylinder(d = usbc_screw_d, h = wall + 2*eps, $fn = fn);
         }
 
-        // poches à inserts des bosses du fond
+        // insert pockets in the bottom bosses
         for (x = [-1, 1], y = [-1, 1])
             translate([x*(box_w/2 - wall - boss_d/2 + 1), y*(box_d/2 - wall - boss_d/2 + 1), 0])
                 insert_pocket();
 
-        // fixation du dosseret : pions + vis + passage câble
+        // backrest mounting: pegs + screws + cable passage
         backrest_fixings(holes = true);
     }
 }
@@ -296,56 +296,56 @@ module backrest_fixings(holes = false) {
             oblong(cable_hole_w, cable_hole_d, wall + 2*eps);
 }
 
-/* ------------------- façade (repère local de la face) ------------------- */
+/* ------------------- faceplate (local face frame) ------------------- */
 
 module faceplate_local() {
     difference() {
         union() {
-            // plaque (z 0..3, posée sur la surface externe de la console)
+            // plate (z 0..face_t, resting on the outer surface of the console)
             linear_extrude(face_t)
                 offset(r = face_r, $fn = fn) offset(delta = -face_r)
                 translate([-face_w/2, plate_s0])
                 square([face_w, plate_s1 - plate_s0]);
-            // plots LCD, traversent l'ouverture vers l'intérieur
+            // LCD posts, reaching inward through the opening
             for (x = [-1, 1], s = [-1, 1])
                 translate([lcd_center_x + x*lcd_hole_dx/2,
                            lcd_center_s + s*lcd_hole_ds/2, -lcd_post_h])
                     cylinder(d = lcd_post_d, h = lcd_post_h + eps, $fn = fn);
         }
-        // fenêtre LCD
+        // LCD window
         translate([lcd_center_x - lcd_window_w/2, lcd_center_s - lcd_window_h/2, -eps])
             cube([lcd_window_w, lcd_window_h, face_t + 2*eps]);
-        // avant-trous LCD (borgnes, la face avant reste pleine)
+        // LCD pilot holes (blind, the front face stays solid)
         for (x = [-1, 1], s = [-1, 1])
             translate([lcd_center_x + x*lcd_hole_dx/2,
                        lcd_center_s + s*lcd_hole_ds/2, -lcd_post_h - eps])
                 cylinder(d = lcd_pilot_d, h = lcd_post_h + 1, $fn = fn);
-        // boutons
+        // buttons
         for (s = btn_s)
             translate([btn_x, s, -eps])
                 cylinder(d = btn_d, h = face_t + 2*eps, $fn = fn);
-        // lamage au dos pour la plaquette couleur
+        // recess at the back for the color plate
         translate([0, 0, -eps]) linear_extrude(icon_pocket_t + eps)
             icon_pocket_2d(0);
-        // icônes ajourées (traversent la peau avant, la couleur apparaît)
+        // cut-through icons (through the front skin, the color shows)
         for (i = [0 : 2])
             translate([btn_icon_x, btn_s[i], icon_pocket_t - eps])
                 linear_extrude(face_t - icon_pocket_t + 2*eps)
                 _btn_icon(i);
-        // vis CHC M3 -> inserts du corps (lamage cylindrique)
+        // M3 socket head screws -> body inserts (cylindrical counterbore)
         for (x = [-1, 1], is = [0, 1])
             translate([x*face_screw_x, face_screw_s[is], 0]) {
                 translate([0, 0, -eps]) cylinder(d = lid_screw_d, h = face_t + 2*eps, $fn = fn);
                 translate([0, 0, face_t - screw_cb_h]) cylinder(d = screw_cb_d, h = screw_cb_h + eps, $fn = fn);
             }
-        // dégagement au dos des boutons : panneau ramené à 3 mm (course du filetage)
+        // clearance behind the buttons: panel thinned to 3 mm (thread length)
         for (sb = btn_s)
             translate([btn_x, sb, -eps])
                 cylinder(d = 16, h = face_t - 3 + eps, $fn = fn);
     }
 }
 
-// contour 2D du lamage / de la plaquette (inset > 0 : jeu de la plaquette)
+// 2D outline of the recess / plate (inset > 0: plate clearance)
 module icon_pocket_2d(inset) {
     s0 = btn_s[0] - 8;  s1 = btn_s[2] + 8;
     offset(r = icon_pocket_r, $fn = fn) offset(delta = -icon_pocket_r)
@@ -353,17 +353,17 @@ module icon_pocket_2d(inset) {
         square([icon_pocket_x1 - icon_pocket_x0 - 2*inset, s1 - s0 - 2*inset]);
 }
 
-// plaquette couleur à coller dans le lamage (imprimer dans une autre couleur)
+// color plate glued into the recess (print in another color)
 module icon_plate_local() {
-    linear_extrude(icon_pocket_t - 0.2)   // 1,8 mm : affleure une fois collée
+    linear_extrude(icon_pocket_t - 0.2)   // 1.8 mm: flush once glued
         icon_pocket_2d(icon_plate_gap);
 }
 
 module faceplate() { on_face() faceplate_local(); }
 
-/* ------------------- dosseret ------------------- */
+/* ------------------- backrest ------------------- */
 
-// trapèze à base d'équerre et coins hauts arrondis
+// trapezoid with a square bottom and rounded top corners
 module backrest_profile() {
     hull() {
         translate([-back_w/2, 0]) square(eps);
@@ -374,14 +374,14 @@ module backrest_profile() {
     }
 }
 
-// cavité interne : le profil rétréci de back_rim, au-dessus de la bande basse
+// inner cavity: the profile shrunk by back_rim, above the bottom band
 module backrest_cavity2d() {
     union() {
         difference() {
             offset(r = -back_rim, $fn = fn) backrest_profile();
             translate([-back_w/2, -1]) square([back_w, reader_bottom_z + 1]);
         }
-        // logement explicite du lecteur en paysage (garanti quel que soit le pourtour)
+        // explicit landscape reader pocket (guaranteed whatever the rim)
         translate([reader_off_x - reader_w/2 - 1.5, reader_bottom_z])
             square([reader_w + 3, reader_h + 1]);
     }
@@ -389,56 +389,56 @@ module backrest_cavity2d() {
 
 module backrest() {
     fy = back_front_y();
-    body_t = back_t - cover_t;   // la plaque arrière affleurante complète l'épaisseur
+    body_t = back_t - cover_t;   // the flush back plate completes the thickness
     union() {
         difference() {
-            // corps
+            // body
             translate([0, fy, box_h])
                 rotate([90, 0, 0])
                 translate([0, 0, -body_t])
                 linear_extrude(body_t)
                 backrest_profile();
-            // grande cavité (paroi avant 3 mm, ouverte vers l'arrière) :
-            // loge le lecteur et laisse le câble circuler librement
+            // large cavity (3 mm front wall, open toward the back):
+            // holds the reader and lets the cable run freely
             translate([0, fy + wall, box_h])
                 rotate([90, 0, 0])
                 translate([0, 0, -(body_t - wall + 1)])
                 linear_extrude(body_t - wall + 1)
                 backrest_cavity2d();
-            // passage du câble vers le socle, côté droit
+            // cable passage down to the base, right side
             translate([cable_off_x, fy + 4 + cable_hole_d/2, box_h - eps])
                 oblong(cable_hole_w, cable_hole_d, reader_bottom_z + 2);
-            // poches à inserts sous le dosseret (vis venant de l'intérieur du socle)
+            // insert pockets under the backrest (screws from inside the base)
             for (x = [-1, 1])
                 translate([x*35, fy + back_t/2, box_h])
                     insert_pocket();
-            // poches à inserts de la plaque arrière (dans la face arrière du corps)
+            // back plate insert pockets (in the rear face of the body)
             for (p = cover_screws, x = [-1, 1])
                 translate([x*p[0], fy + body_t, box_h + p[1]])
                     rotate([90, 0, 0]) insert_pocket();
         }
-        // butées de positionnement de la carte lecteur (collée en face avant)
+        // positioning stops for the reader board (glued to the front wall)
         for (x = [-1, 1])
             translate([reader_off_x + x*(reader_w/2 + 1) - 1, fy + wall - eps,
                        box_h + reader_bottom_z])
                 cube([2, 4 + eps, 30]);
-        // pions d'alignement sous le dosseret
+        // alignment pegs under the backrest
         for (x = [-1, 1])
             translate([x*60, fy + back_t/2, box_h - peg_h])
                 cylinder(d = peg_d, h = peg_h, $fn = fn);
     }
 }
 
-// plaque arrière : même profil que le dosseret, affleurante
+// back plate: same profile as the backrest, flush
 module backrest_cover() {
     fy = back_front_y();
     difference() {
         translate([0, fy, box_h])
             rotate([90, 0, 0])
-            translate([0, 0, -back_t])   // la plaque occupe fy+21..fy+24, affleurante au corps
+            translate([0, 0, -back_t])   // the plate spans fy+21..fy+25, flush with the body
             linear_extrude(cover_t)
             backrest_profile();
-        // vis CHC M3 vers les inserts du corps (lamage cylindrique)
+        // M3 socket head screws into the body inserts (cylindrical counterbore)
         for (p = cover_screws, x = [-1, 1])
             translate([x*p[0], fy + back_t + eps, box_h + p[1]])
                 rotate([90, 0, 0]) {
@@ -448,7 +448,7 @@ module backrest_cover() {
     }
 }
 
-/* ------------------- fond ------------------- */
+/* ------------------- bottom ------------------- */
 
 module lid() {
     difference() {
@@ -471,7 +471,7 @@ module lid() {
                 cylinder(d = lid_screw_d, h = lid_t + 2*eps, $fn = fn);
                 cylinder(d = screw_cb_d, h = screw_cb_h + eps, $fn = fn);
             }
-        // aérations, sous la zone du Raspberry Pi
+        // vents, under the Raspberry Pi area
         for (x = [-4 : 4])
             translate([x*12, 43, -eps])
                 hull()
@@ -480,7 +480,7 @@ module lid() {
     }
 }
 
-/* ------------------- rendu ------------------- */
+/* ------------------- rendering ------------------- */
 
 module assembly() {
     color("WhiteSmoke") shell();
@@ -493,15 +493,15 @@ module assembly() {
 if (part == "shell") {
     rotate([180, 0, 0]) translate([0, 0, -box_h]) shell();
 } else if (part == "faceplate") {
-    // face avant (gravures) sur le plateau, plots vers le haut
+    // front face (icons) on the bed, posts pointing up
     translate([0, (plate_s0 + plate_s1)/2, face_t])
         rotate([180, 0, 0])
         translate([0, -(plate_s0 + plate_s1)/2, 0])
         faceplate_local();
 } else if (part == "backrest") {
-    // couché sur la face avant, posé sur le plateau
-    // (constantes de recentrage : vérifier les bornes du STL après
-    //  modification de box_h / back_h / reader_*)
+    // lying on its front face, on the bed
+    // (re-centering constants: check the STL bounds after changing
+    //  box_h / back_h / reader_*)
     fy = back_front_y();
     translate([0, -(box_h + back_h/2) + 37.5, fy + back_t])
         translate([0, box_h + back_h/2, -(fy + back_t)])

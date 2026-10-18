@@ -1,10 +1,10 @@
-"""Implémentations simulées du matériel, pour développer et tester sans
-Raspberry Pi (mode `--fake`, utilisable sur Mac/PC).
+"""Simulated hardware implementations, to develop and test without a
+Raspberry Pi (`--fake` mode, usable on Mac/PC).
 
-- FakeLcdBackend  : affiche les 4 lignes du LCD dans le terminal
-- FakeNfcReader   : tapez un UID + Entrée pour « poser » une carte,
-                    Entrée seule pour la « retirer »
-- FakeRoonClient  : journalise les commandes et simule un morceau en cours
+- FakeLcdBackend  : prints the 4 LCD lines in the terminal
+- FakeNfcReader   : type a UID + Enter to "place" a card,
+                    Enter alone to "remove" it
+- FakeRoonClient  : logs the commands and simulates a track playing
 """
 
 from __future__ import annotations
@@ -37,11 +37,11 @@ class FakeLcdBackend(LcdBackend):
                         [border]))
 
     def set_backlight(self, on: bool) -> None:
-        print(f"[LCD] rétro-éclairage {'ON' if on else 'OFF (veille)'}")
+        print(f"[LCD] backlight {'ON' if on else 'OFF (sleep)'}")
 
 
 class FakeNfcReader:
-    """Simule le lecteur : saisie d'UID au clavier."""
+    """Simulates the reader: UIDs typed on the keyboard."""
 
     def __init__(self, event_queue: "queue.Queue"):
         self._queue = event_queue
@@ -49,8 +49,8 @@ class FakeNfcReader:
         self._thread = threading.Thread(target=self._run, daemon=True, name="fake-nfc")
 
     def start(self) -> None:
-        print("[FAKE NFC] tapez un UID (ex: 04A1B2C3) + Entrée pour poser une carte, "
-              "Entrée seule pour la retirer")
+        print("[FAKE NFC] type a UID (e.g. 04A1B2C3) + Enter to place a card, "
+              "Enter alone to remove it")
         self._thread.start()
 
     def stop(self) -> None:
@@ -67,7 +67,7 @@ class FakeNfcReader:
             elif self._current:
                 self._queue.put(CardRemoved(uid=self._current))
                 self._current = None
-        # stdin fermé (EOF) : en mode simulé, on arrête l'application
+        # stdin closed (EOF): in fake mode, stop the application
         self._queue.put(Shutdown())
 
 
@@ -77,13 +77,13 @@ FAKE_LIBRARY = [
     ("Electronica 2: The Heart of Noise", "Jean-Michel Jarre"),
     ("Greatest Hits", "Queen"),
     ("Greatest Hits", "ABBA"),
-    ("Bande originale", "Artistes divers"),
+    ("Original Soundtrack", "Various Artists"),
 ]
 FAKE_ARTISTS = {"Miles Davis", "Jean-Michel Jarre", "Queen", "ABBA"}
 
 
 class FakeRoonClient:
-    """Simule Roon : accepte tout album ne contenant pas « introuvable »."""
+    """Simulates Roon: accepts any album whose name doesn't contain "notfound"."""
 
     def __init__(self, event_queue: "queue.Queue"):
         self._queue = event_queue
@@ -91,27 +91,27 @@ class FakeRoonClient:
 
     def start(self) -> None:
         self.connected = True
-        self._queue.put(RoonConnection(connected=True, message="simulé"))
+        self._queue.put(RoonConnection(connected=True, message="simulated"))
 
     def stop(self) -> None:
         pass
 
     def zone_display_name(self) -> str:
-        return "Zone simulée"
+        return "Simulated zone"
 
     def play_album(self, entry: AlbumEntry) -> bool:
-        if "introuvable" in entry.display_name().lower():
+        if "notfound" in entry.display_name().lower():
             return False
-        log.info("[FAKE ROON] lecture de «%s»", entry.display_name())
+        log.info("[FAKE ROON] playing \"%s\"", entry.display_name())
         self._queue.put(NowPlaying(state="playing", album=entry.display_name(),
-                                   track="Piste 1", artist=entry.artist))
+                                   track="Track 1", artist=entry.artist))
         return True
 
     def search_albums(self, query: str, limit: int = 50) -> list[dict]:
         return search_library(query, FAKE_LIBRARY, FAKE_ARTISTS, limit)
 
     def control(self, action: str) -> None:
-        log.info("[FAKE ROON] commande: %s", action)
+        log.info("[FAKE ROON] command: %s", action)
         state = {"pause": "paused", "stop": "stopped"}.get(action, "playing")
-        self._queue.put(NowPlaying(state=state, album="Album simulé",
-                                   track=f"Piste après «{action}»", artist=""))
+        self._queue.put(NowPlaying(state=state, album="Simulated album",
+                                   track=f"Track after \"{action}\"", artist=""))

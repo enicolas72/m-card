@@ -1,14 +1,14 @@
-// Bandeau de cartes défilant, dessiné dans un <canvas> 2D.
-// Une animation CSS (translateX sur une longue bande d'images) perdait des
-// morceaux sous Safari à côté du contexte WebGL de la scène 3D : ici aucun
-// calque animé, le navigateur n'a qu'une image à afficher.
+// Scrolling strip of cards, drawn on a 2D <canvas>.
+// A CSS animation (translateX on a long strip of images) lost pieces in
+// Safari next to the 3D scene's WebGL context: here there is no animated
+// layer, the browser only has one image to display.
 
-const CARD_RATIO = 674 / 420;   // hauteur / largeur des jaquettes
-const SPEED = 28;               // px CSS par seconde
+const CARD_RATIO = 674 / 420;   // artwork height / width
+const SPEED = 28;               // CSS px per second
 const TILT = -3 * Math.PI / 180;
 
-// pré-rendu d'une carte (coins arrondis, ombre, liseré) : l'ombre floue est
-// coûteuse, on ne la calcule qu'une fois par carte et par taille
+// pre-render a card (rounded corners, shadow, outline): the blurred shadow
+// is expensive, so it is computed only once per card and size
 function renderCard(img, w, dpr) {
   const h = w * CARD_RATIO, pad = 30;
   const c = document.createElement('canvas');
@@ -60,7 +60,7 @@ export function createMarquee(canvas, urls, { bg = '#120d0c' } = {}) {
     ctx.translate(width / 2, height / 2);
     ctx.rotate(TILT);
     const step = cardW + gap, loop = step * sprites.length;
-    const span = width * 1.1;   // un peu plus large : l'inclinaison découvre les coins
+    const span = width * 1.1;   // a bit wider: the tilt uncovers the corners
     let x = -span / 2 - (offset % loop);
     let k = 0;
     while (x < span / 2 + step) {
@@ -70,7 +70,7 @@ export function createMarquee(canvas, urls, { bg = '#120d0c' } = {}) {
       x += step; k++;
     }
     ctx.restore();
-    // bords estompés vers la couleur du fond
+    // edges faded into the background color
     const fade = width * 0.12;
     for (const [x0, x1] of [[0, fade], [width, width - fade]]) {
       const g = ctx.createLinearGradient(x0, 0, x1, 0);

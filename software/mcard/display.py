@@ -1,11 +1,11 @@
-"""Pilotage de l'écran LCD 2004 (20x4) via backpack I2C PCF8574.
+"""Driver for the 2004 LCD (20x4) through a PCF8574 I2C backpack.
 
-Le HD44780 (ROM A00) n'affiche pas les caractères accentués : on translittère
-en ASCII. Les lignes plus longues que 20 caractères défilent en boucle grâce
-à un petit thread « ticker ».
+The HD44780 (ROM A00) cannot display accented characters: text is
+transliterated to ASCII. Lines longer than 20 characters scroll in a loop
+thanks to a small "ticker" thread.
 
-L'implémentation matérielle (RPLCD) est importée paresseusement pour que le
-reste du logiciel (tests, mode --fake) tourne sans les bibliothèques Pi.
+The hardware implementation (RPLCD) is imported lazily so that the rest of
+the software (tests, --fake mode) runs without the Pi libraries.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import unicodedata
 log = logging.getLogger(__name__)
 
 SCROLL_PERIOD_S = 0.6
-SCROLL_GAP = "   "  # séparateur visuel entre fin et début du texte qui défile
+SCROLL_GAP = "   "  # visual separator between the end and the start of scrolling text
 
 STATE_ICONS = {
     "playing": ">",
@@ -29,7 +29,7 @@ STATE_ICONS = {
 
 
 def to_lcd_ascii(text: str) -> str:
-    """Translittère les accents/typo Unicode vers l'ASCII affichable du HD44780."""
+    """Transliterates Unicode accents/typography to the HD44780's printable ASCII."""
     text = text.replace("œ", "oe").replace("Œ", "OE").replace("æ", "ae").replace("Æ", "AE")
     text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
     text = text.replace("–", "-").replace("—", "-").replace("…", "...")
@@ -38,7 +38,7 @@ def to_lcd_ascii(text: str) -> str:
 
 
 class LcdBackend:
-    """Interface minimale attendue par Display (implémentée par le vrai LCD et le fake)."""
+    """Minimal interface expected by Display (implemented by the real LCD and the fake)."""
 
     cols = 20
     rows = 4
@@ -54,10 +54,10 @@ class LcdBackend:
 
 
 class CharLcdBackend(LcdBackend):
-    """Backend réel : RPLCD sur le bus I2C du Raspberry Pi."""
+    """Real backend: RPLCD on the Raspberry Pi's I2C bus."""
 
     def __init__(self, i2c_address: int, i2c_port: int, cols: int, rows: int):
-        from RPLCD.i2c import CharLCD  # import paresseux (indisponible hors Pi)
+        from RPLCD.i2c import CharLCD  # lazy import (unavailable off the Pi)
 
         self.cols = cols
         self.rows = rows
@@ -82,14 +82,14 @@ class CharLcdBackend(LcdBackend):
         try:
             self._lcd.clear()
             self._lcd.close()
-        except Exception:  # l'écran peut déjà être débranché à l'arrêt
+        except Exception:  # the display may already be unplugged at shutdown
             pass
 
 
 class Display:
-    """Affichage 4 lignes : défilement automatique des lignes trop longues,
-    mise en veille du rétro-éclairage après `backlight_timeout_s` sans
-    interaction (0 = jamais). wake() rallume et réarme le délai."""
+    """4-line display: automatic scrolling of lines that are too long,
+    backlight sleep after `backlight_timeout_s` without interaction
+    (0 = never). wake() turns it back on and re-arms the delay."""
 
     def __init__(self, backend: LcdBackend, backlight_timeout_s: float = 0):
         self._backend = backend
@@ -103,7 +103,7 @@ class Display:
         self._ticker = threading.Thread(target=self._tick_loop, daemon=True, name="lcd-ticker")
         self._ticker.start()
 
-    # ---- API haut niveau -------------------------------------------------
+    # ---- High-level API -------------------------------------------------
 
     def set_lines(self, *lines: str) -> None:
         with self._lock:
@@ -115,26 +115,26 @@ class Display:
             self._render_locked()
 
     def show_boot(self, version: str) -> None:
-        self.set_lines("M-Card", f"v{version}", "Demarrage...", "")
+        self.set_lines("M-Card", f"v{version}", "Starting...", "")
 
     def show_waiting(self) -> None:
-        self.set_lines("M-Card", "", "Posez un album", "")
+        self.set_lines("M-Card", "", "Place an album", "")
 
     def show_now_playing(self, state: str, album: str, track: str, artist: str = "") -> None:
         icon = STATE_ICONS.get(state, "?")
         self.set_lines(f"{icon} {state}", album, track, artist)
 
     def show_unknown_card(self, uid: str) -> None:
-        self.set_lines("Carte inconnue", f"UID {uid}", "Ajoutee au fichier", "albums.yaml (TODO)")
+        self.set_lines("Unknown card", f"UID {uid}", "Added to", "albums.yaml (TODO)")
 
     def show_todo_card(self, uid: str) -> None:
-        self.set_lines("Carte a configurer", f"UID {uid}", "Editez albums.yaml", "via l'interface web")
+        self.set_lines("Card to set up", f"UID {uid}", "Edit albums.yaml", "via the web UI")
 
     def show_error(self, line1: str, line2: str = "") -> None:
         self.set_lines("! " + line1, line2, "", "")
 
     def wake(self) -> None:
-        """Rallume le rétro-éclairage et réarme le délai de veille."""
+        """Turns the backlight back on and re-arms the sleep delay."""
         with self._lock:
             self._last_wake = time.monotonic()
             if not self._bl_on:
@@ -142,7 +142,7 @@ class Display:
                 try:
                     self._backend.set_backlight(True)
                 except Exception as exc:
-                    log.error("Rétro-éclairage impossible: %s", exc)
+                    log.error("Backlight control failed: %s", exc)
 
     def _maybe_sleep_locked(self, now: float) -> None:
         if (self._bl_timeout > 0 and self._bl_on
@@ -151,14 +151,14 @@ class Display:
             try:
                 self._backend.set_backlight(False)
             except Exception as exc:
-                log.error("Rétro-éclairage impossible: %s", exc)
+                log.error("Backlight control failed: %s", exc)
 
     def close(self) -> None:
         self._stop.set()
         self._ticker.join(timeout=2)
         self._backend.close()
 
-    # ---- Rendu / défilement ---------------------------------------------
+    # ---- Rendering / scrolling ------------------------------------------
 
     def _visible_part(self, row: int) -> str:
         text, cols = self._lines[row], self._backend.cols
@@ -174,7 +174,7 @@ class Display:
             try:
                 self._backend.write_row(row, self._visible_part(row))
             except Exception as exc:
-                log.error("Ecriture LCD impossible: %s", exc)
+                log.error("LCD write failed: %s", exc)
                 return
 
     def _tick_loop(self) -> None:

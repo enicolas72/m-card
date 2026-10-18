@@ -1,4 +1,4 @@
-"""Correspondance approchée des noms d'albums (play_media exige le titre exact)."""
+"""Approximate album name matching (play_media needs the exact title)."""
 
 import queue
 
@@ -21,7 +21,7 @@ def test_exact_match_passthrough():
 
 
 def test_case_insensitive():
-    # le cas Diana Krall : « in The » écrit « in the » dans Roon
+    # the Diana Krall case: "in The" spelled "in the" in Roon
     found, _ = best_album_match("The Girl in The Other Room", LIBRARY)
     assert found == "The Girl in the Other Room"
 
@@ -32,7 +32,7 @@ def test_accents_and_apostrophes():
 
 
 def test_partial_match_when_unambiguous():
-    # le cas Mylène Farmer : « Nevermore » s'appelle « Nevermore 2023 »
+    # the Mylène Farmer case: "Nevermore" is called "Nevermore 2023"
     found, _ = best_album_match("Nevermore", LIBRARY)
     assert found == "Nevermore 2023"
 
@@ -44,7 +44,7 @@ def test_ambiguous_returns_suggestions():
 
 
 def test_not_found():
-    found, suggestions = best_album_match("Inconnu au bataillon", LIBRARY)
+    found, suggestions = best_album_match("Never Heard Of It", LIBRARY)
     assert found is None
     assert suggestions == []
 
@@ -54,7 +54,7 @@ def test_empty_target():
 
 
 def test_short_titles_do_not_match_inside_words():
-    # albums « I » et « V » : ne doivent pas correspondre à toute lettre i/v
+    # albums "I" and "V": must not match every letter i/v
     library = ["I", "V", "Electronica 1: The Time Machine"]
     found, _ = best_album_match("Electronica Vol 1 The Time Machine", library)
     assert found == "Electronica 1: The Time Machine"
@@ -67,8 +67,8 @@ def test_punctuation_and_volume_ignored():
 
 
 class FakeBrowseApi:
-    """Simule browse_browse/browse_load de pyroon (pagination par 100).
-    `titles` : titres seuls ou couples (titre, artiste)."""
+    """Simulates pyroon's browse_browse/browse_load (pages of 100).
+    `titles`: plain titles or (title, artist) pairs."""
 
     def __init__(self, titles, artists=()):
         self.titles = titles
@@ -109,16 +109,16 @@ def test_resolve_uses_cache_then_refreshes_on_miss():
     api = FakeBrowseApi(["Abbey Road"])
     assert client._resolve_album_title(api, "abbey road") == "Abbey Road"
     calls_after_first = api.load_calls
-    # nouvel album ajouté dans Roon après la mise en cache
+    # new album added in Roon after caching
     api.titles = ["Abbey Road", "Nevermore 2023"]
     assert client._resolve_album_title(api, "Nevermore") == "Nevermore 2023"
-    assert api.load_calls > calls_after_first  # un rafraîchissement a eu lieu
+    assert api.load_calls > calls_after_first  # a refresh happened
 
 
 def test_resolve_unknown_returns_none():
     client = make_client()
     api = FakeBrowseApi(["Abbey Road"])
-    assert client._resolve_album_title(api, "Inconnu") is None
+    assert client._resolve_album_title(api, "Unknown") is None
 
 
 def test_titles_match_tolerant():
@@ -135,7 +135,7 @@ def test_longest_shared_part_wins():
     assert found == "Electronica: The Heart of Noise, Vol. 2"
 
 
-# ---- recherche libre (page /search) ------------------------------------
+# ---- free-text search (/search page) -----------------------------------
 
 SEARCH_LIBRARY = [
     ("Electronica 1: The Time Machine", "Jean-Michel Jarre"),
@@ -143,7 +143,7 @@ SEARCH_LIBRARY = [
     ("Oxygène", "Jean-Michel Jarre"),
     ("Greatest Hits", "Queen"),
     ("Greatest Hits", "ABBA"),
-    ("Bande originale", "Artistes divers"),
+    ("Original Soundtrack", "Various Artists"),
 ]
 SEARCH_ARTISTS = {"Jean-Michel Jarre", "Queen", "ABBA"}
 
@@ -169,8 +169,8 @@ def test_search_path_goes_through_artist():
 
 
 def test_search_falls_back_to_albums_path_with_warning():
-    (result,) = search_library("bande", SEARCH_LIBRARY, SEARCH_ARTISTS)
-    assert result["path"] == ["Library", "Albums", "Bande originale"]
+    (result,) = search_library("soundtrack", SEARCH_LIBRARY, SEARCH_ARTISTS)
+    assert result["path"] == ["Library", "Albums", "Original Soundtrack"]
     assert "Artists" in result["warning"]
 
 

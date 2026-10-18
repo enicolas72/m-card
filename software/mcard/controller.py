@@ -1,12 +1,12 @@
-"""Contrôleur central : consomme la queue d'événements et orchestre
-Roon, l'écran et la table d'albums.
+"""Central controller: consumes the event queue and orchestrates Roon,
+the display and the album table.
 
-Logique métier :
-- carte connue     -> lecture de l'album sur Roon
-- carte en TODO    -> message « à configurer » sur l'écran
-- carte inconnue   -> ajout automatique en TODO dans albums.yaml + message
-- carte retirée    -> pause / stop / rien (configurable)
-- boutons          -> commandes de transport Roon
+Business rules:
+- known card       -> play the album on Roon
+- TODO card        -> "to set up" message on the display
+- unknown card     -> automatically added as TODO to albums.yaml + message
+- card removed     -> pause / stop / nothing (configurable)
+- buttons          -> Roon transport commands
 """
 
 from __future__ import annotations
@@ -31,9 +31,9 @@ log = logging.getLogger(__name__)
 
 BUTTON_TO_ROON = {
     "prev": "previous",
-    "playpause": "playpause",  # bascule lecture/pause côté Roon
+    "playpause": "playpause",  # play/pause toggle on the Roon side
     "next": "next",
-    # anciens noms (config 4 boutons) toujours acceptés
+    # legacy names (4-button config) still accepted
     "play": "play",
     "pause": "pause",
 }
@@ -44,7 +44,7 @@ class Controller:
         self._config = config
         self._albums = albums
         self._display = display
-        self.roon = roon  # injecté après création (il a besoin de notre queue)
+        self.roon = roon  # injected after creation (it needs our queue)
         self.queue: "queue.Queue" = queue.Queue()
 
         self._on_card_removed = config.get("behavior", "on_card_removed", default="pause")
@@ -52,7 +52,7 @@ class Controller:
         self._last_uid: Optional[str] = None
         self._last_uid_ts: float = 0.0
 
-        # état exposé au serveur web
+        # state exposed to the web server
         self.status: dict = {
             "roon_connected": False,
             "roon_message": "",
@@ -67,17 +67,17 @@ class Controller:
     # ------------------------------------------------------------------
 
     def run(self) -> None:
-        """Boucle principale (bloquante) ; sort sur événement Shutdown."""
+        """Main loop (blocking); returns on a Shutdown event."""
         self._display.show_waiting()
         while True:
             event = self.queue.get()
             try:
                 if isinstance(event, Shutdown):
-                    log.info("Arrêt du contrôleur")
+                    log.info("Controller stopping")
                     return
                 self._handle(event)
             except Exception:
-                log.exception("Erreur lors du traitement de %r", event)
+                log.exception("Error while handling %r", event)
 
     def shutdown(self) -> None:
         self.queue.put(Shutdown())
@@ -85,7 +85,7 @@ class Controller:
     # ------------------------------------------------------------------
 
     def _handle(self, event) -> None:
-        # toute interaction physique réveille le rétro-éclairage
+        # any physical interaction wakes the backlight up
         if isinstance(event, (CardPresented, CardRemoved, ButtonPressed)):
             self._display.wake()
         if isinstance(event, CardPresented):
@@ -107,19 +107,19 @@ class Controller:
         elif isinstance(event, RoonConnection):
             self.status.update(roon_connected=event.connected, roon_message=event.message)
             if event.connected:
-                log.info("Roon connecté (%s)", event.message)
+                log.info("Roon connected (%s)", event.message)
                 if self.status["state"] not in ("playing", "paused"):
                     self._display.show_waiting()
             else:
-                log.warning("Roon déconnecté (%s)", event.message)
-                self._display.show_error("Roon inaccessible", "Verifiez serveur/wifi")
+                log.warning("Roon disconnected (%s)", event.message)
+                self._display.show_error("Roon unreachable", "Check server/Wi-Fi")
         else:
-            log.debug("Événement ignoré: %r", event)
+            log.debug("Event ignored: %r", event)
 
     def _handle_card(self, uid: str) -> None:
         now = time.monotonic()
         if uid == self._last_uid and (now - self._last_uid_ts) < self._cooldown_s:
-            log.debug("Carte %s re-détectée pendant le cooldown, ignorée", uid)
+            log.debug("Card %s re-detected during the cooldown, ignored", uid)
             self._last_uid_ts = now
             return
         self._last_uid = uid
@@ -128,7 +128,7 @@ class Controller:
         entry = self._albums.lookup(uid)
         if entry is None:
             entry = self._albums.add_todo(uid)
-            self.status.update(card_uid=uid, card_album="TODO (nouvelle carte)")
+            self.status.update(card_uid=uid, card_album="TODO (new card)")
             self._display.show_unknown_card(uid)
             return
         if entry.is_todo:
@@ -138,22 +138,22 @@ class Controller:
 
         self.status.update(card_uid=uid, card_album=entry.display_name())
 
-        # même album que celui en cours : on ne perturbe pas la lecture
-        # (permet de prendre le vinyle en main, le regarder, le reposer)
+        # same album as the one playing: don't disturb playback
+        # (lets you pick the record up, look at it and put it back)
         if titles_match(entry.display_name(), self.status.get("album", "")):
             state = self.status.get("state", "")
             if state == "playing":
-                log.info("Carte %s : «%s» est déjà en lecture, rien à faire",
+                log.info("Card %s: \"%s\" is already playing, nothing to do",
                          uid, entry.display_name())
                 return
             if state == "paused":
-                log.info("Carte %s : «%s» en pause, reprise", uid, entry.display_name())
+                log.info("Card %s: \"%s\" is paused, resuming", uid, entry.display_name())
                 self.roon.control("playpause")
                 return
 
-        self._display.set_lines("Lancement...", entry.display_name(), entry.artist, "")
+        self._display.set_lines("Starting...", entry.display_name(), entry.artist, "")
         if not self.roon.play_album(entry):
-            self._display.show_error("Album introuvable", entry.display_name())
+            self._display.show_error("Album not found", entry.display_name())
 
     def _handle_card_removed(self, uid: str) -> None:
         self.status.update(card_uid="", card_album="")
@@ -163,4 +163,4 @@ class Controller:
         elif action == "stop":
             self.roon.control("stop")
         elif action != "none":
-            log.warning("behavior.on_card_removed invalide: %r", action)
+            log.warning("Invalid behavior.on_card_removed: %r", action)

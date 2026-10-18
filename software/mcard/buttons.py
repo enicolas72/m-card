@@ -1,7 +1,7 @@
-"""Boutons physiques prev / play / pause / next sur GPIO (numérotation BCM).
+"""Physical prev / play / pause / next buttons on GPIO (BCM numbering).
 
-Chaque bouton relie sa broche GPIO à GND ; on active les pull-ups internes
-du Pi. gpiozero gère l'anti-rebond.
+Each button connects its GPIO pin to GND; the Pi's internal pull-ups are
+enabled. gpiozero handles debouncing.
 """
 
 from __future__ import annotations
@@ -21,17 +21,17 @@ class Buttons:
         self._buttons = []
 
     def start(self) -> None:
-        from gpiozero import Button  # import paresseux (indisponible hors Pi)
+        from gpiozero import Button  # lazy import (unavailable off the Pi)
 
         for name, pin in self._pins.items():
             button = Button(pin, pull_up=True, bounce_time=0.05)
             button.when_pressed = self._make_handler(name)
             self._buttons.append(button)
-            log.info("Bouton «%s» sur GPIO%d", name, pin)
+            log.info("Button \"%s\" on GPIO%d", name, pin)
 
     def _make_handler(self, name: str):
         def handler():
-            log.info("Bouton pressé: %s", name)
+            log.info("Button pressed: %s", name)
             self._queue.put(ButtonPressed(name=name))
 
         return handler

@@ -1,5 +1,5 @@
-// Point d'entrée de la page : relie le rendu 3D, les deux LCD émulés, le
-// sélecteur de cartes, la console web et les animations au défilement.
+// Page entry point: wires the 3D rendering, both emulated LCDs, the card
+// picker, the web console and the scroll animations together.
 import { ALBUMS } from './albums.js';
 import { Lcd, nowPlayingLines } from './lcd.js';
 import { createDeviceScene } from './scene.js';
@@ -9,7 +9,7 @@ const A = window.__ASSETS;
 const cardUrl = (id) => A.cards[id];
 const SCROLL_PERIOD_MS = 600;
 
-// ---- LCD de l'appareil 3D + LCD grand format --------------------------
+// ---- 3D device LCD + large LCD ---------------------------------------
 const heroLcd = new Lcd(document.createElement('canvas'), { scale: 6 });
 const bigLcd = new Lcd(document.getElementById('lcdBig'), { scale: 8 });
 setInterval(() => { heroLcd.tick(); bigLcd.tick(); }, SCROLL_PERIOD_MS);
@@ -18,7 +18,7 @@ function playLines(album, state = 'playing') {
   return nowPlayingLines(state, album.album, album.track, album.artist);
 }
 
-// ---- héros : scène 3D et sélecteur de cartes -------------------------
+// ---- hero: 3D scene and card picker --------------------------------
 let current = 0;
 let scene = null;
 const picker = document.getElementById('picker');
@@ -55,7 +55,7 @@ try {
     lcd: heroLcd,
   });
 } catch (err) {
-  // WebGL indisponible : on montre la photo du prototype à la place
+  // WebGL unavailable: show the prototype photo instead
   console.warn('WebGL unavailable', err);
   document.getElementById('device3d').innerHTML =
     `<img src="${A.img.IMG_0931}" alt="M-Card" style="width:100%;height:100%;object-fit:cover;border-radius:24px">`;
@@ -64,19 +64,19 @@ markPicker();
 heroLcd.setLines(playLines(ALBUMS[0]));
 restartCycle();
 
-// ---- LCD grand format : un exemple d'affichage (titre long qui défile)
+// ---- large LCD: one sample screen (long title scrolling)
 bigLcd.setLines(playLines(ALBUMS[1]));
 
-// ---- bandeau de cartes défilant (canvas, cf. marquee.js) ------------
+// ---- scrolling card strip (canvas, see marquee.js) ----------------
 createMarquee(document.getElementById('marquee'), ALBUMS.map((a) => cardUrl(a.id)));
 
-// ---- illustrations des étapes ----------------------------------------
+// ---- step illustrations --------------------------------------------
 document.getElementById('vizFan').innerHTML = ['krall', 'division_bell', 'norah']
   .map((id) => `<img src="${cardUrl(id)}" alt="">`).join('');
 document.getElementById('vizSlotCard').src = cardUrl('jarre1');
 
-// ---- console web : trois vues figées (captures réelles, Shadow DOM pour
-// isoler leurs styles) en carrousel horizontal ------------------------------
+// ---- web console: three frozen views (real captures, Shadow DOM to
+// isolate their styles) in a horizontal carousel -----------------------------
 const VIEWS = [
   { page: 'status', label: 'Status', url: 'mcard.local:8088/' },
   { page: 'config', label: 'Albums', url: 'mcard.local:8088/config/albums.yaml' },
@@ -93,7 +93,7 @@ VIEWS.forEach((v, i) => {
   const root = slide.attachShadow({ mode: 'open' });
   root.innerHTML = `<style>${css}${FROZEN}</style><div class="page">${body}</div>`;
   slides.appendChild(slide);
-  // albums.yaml : passer l'en-tête d'aide pour montrer directement les cartes
+  // albums.yaml: skip the help header to show the cards right away
   const ta = root.querySelector('textarea');
   if (ta) {
     const lines = ta.value.split('\n');
@@ -116,7 +116,7 @@ function goTo(i) { slides.scrollTo({ left: i * slides.clientWidth }); setActive(
 slides.addEventListener('scroll', () => {
   setActive(Math.round(slides.scrollLeft / slides.clientWidth));
 }, { passive: true });
-// défilement automatique, en pause au survol / au toucher
+// auto-advance, paused on hover / touch
 let auto = null, paused = false;
 function restartAuto() {
   clearInterval(auto);
@@ -128,7 +128,7 @@ slides.addEventListener('touchstart', () => { restartAuto(); }, { passive: true 
 setActive(0);
 restartAuto();
 
-// ---- apparition au défilement ----------------------------------------
+// ---- reveal on scroll -----------------------------------------------
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
 }, { threshold: 0.15 });

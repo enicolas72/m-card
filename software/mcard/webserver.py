@@ -1,15 +1,15 @@
-"""Micro-serveur web local (Flask) — uniquement sur le réseau local.
+"""Small local web server (Flask) — local network only.
 
-- /            : état de l'appareil (morceau en cours, Roon, dernière carte)
-- /logs        : consultation du log (lecture seule)
-- /config      : édition des fichiers de configuration (albums.yaml, mcard.yaml),
-                 /config/<nom>/download pour le fichier brut (sauvegardes)
-- /search      : recherche d'albums dans Roon → fragment `path:` pour albums.yaml,
-                 ou association directe à une carte
-- /api/status  : état JSON
+- /            : device status (current track, Roon, last card)
+- /logs        : log viewer (read-only)
+- /config      : config file editor (albums.yaml, mcard.yaml),
+                 /config/<name>/download for the raw file (backups)
+- /search      : Roon album search → `path:` snippet for albums.yaml,
+                 or direct assignment to a card
+- /api/status  : JSON status
 
-Aucune authentification : l'appareil n'est accessible que sur le LAN
-(aucune connexion Internet, conformément au cahier des charges).
+No authentication: the device is only reachable on the LAN
+(no Internet connection, as per the original spec).
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 EDITABLE_FILES = ("albums.yaml", "mcard.yaml")
 
 PAGE = """<!doctype html>
-<html lang="fr"><head><meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>M-Card</title>
 <style>
@@ -54,14 +54,14 @@ PAGE = """<!doctype html>
  td form button {{ padding: .3rem .8rem; }}
 </style></head><body>
 <h1><a href="/">M-Card</a></h1>
-<nav><a href="/">État</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">Recherche</a></nav>
+<nav><a href="/">Status</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">Search</a></nav>
 {body}
 </body></html>"""
 
 
 def _tail(path: Path, lines: int) -> str:
     if not path.exists():
-        return "(fichier de log absent)"
+        return "(log file missing)"
     with open(path, encoding="utf-8", errors="replace") as fh:
         return "".join(deque(fh, maxlen=lines))
 
@@ -82,16 +82,16 @@ def create_app(
     @app.get("/")
     def index():
         s = status_fn()
-        roon = ('<span class="ok">connecté</span>' if s.get("roon_connected")
-                else '<span class="err">déconnecté</span>')
+        roon = ('<span class="ok">connected</span>' if s.get("roon_connected")
+                else '<span class="err">disconnected</span>')
         rows = [
             ("Roon", f'{roon} {html.escape(s.get("roon_message", ""))}'),
-            ("État", html.escape(s.get("state", ""))),
+            ("State", html.escape(s.get("state", ""))),
             ("Album", html.escape(s.get("album", ""))),
-            ("Morceau", html.escape(s.get("track", ""))),
-            ("Artiste", html.escape(s.get("artist", ""))),
-            ("Carte posée", html.escape(s.get("card_uid", "") or "aucune")),
-            ("Album de la carte", html.escape(s.get("card_album", ""))),
+            ("Track", html.escape(s.get("track", ""))),
+            ("Artist", html.escape(s.get("artist", ""))),
+            ("Card in slot", html.escape(s.get("card_uid", "") or "none")),
+            ("Card album", html.escape(s.get("card_album", ""))),
         ]
         table = "".join(f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows)
         return PAGE.format(body=f"<table>{table}</table>")
@@ -103,15 +103,15 @@ def create_app(
     @app.get("/logs")
     def logs():
         n = max(10, min(int(request.args.get("n", "200")), 5000))
-        body = (f"<p>{n} dernières lignes — <a href='/logs?n=1000'>1000</a>, "
-                f"<a href='/logs/download'>télécharger tout</a></p>"
+        body = (f"<p>last {n} lines — <a href='/logs?n=1000'>1000</a>, "
+                f"<a href='/logs/download'>download all</a></p>"
                 f"<pre>{html.escape(_tail(log_file, n))}</pre>")
         return PAGE.format(body=body)
 
     @app.get("/logs/download")
     def logs_download():
         if not log_file.exists():
-            return Response("log absent", status=404)
+            return Response("log missing", status=404)
         return Response(
             log_file.read_bytes(),
             mimetype="text/plain",
@@ -128,7 +128,7 @@ def create_app(
         return PAGE.format(body=f"<ul>{items}</ul>")
 
     def _check_name(name: str) -> Path:
-        if name not in EDITABLE_FILES:  # protège aussi contre les traversées de chemin
+        if name not in EDITABLE_FILES:  # also guards against path traversal
             raise FileNotFoundError(name)
         return config_dir / name
 
@@ -137,17 +137,17 @@ def create_app(
         try:
             path = _check_name(name)
         except FileNotFoundError:
-            return Response("fichier inconnu", status=404)
+            return Response("unknown file", status=404)
         content = path.read_text(encoding="utf-8") if path.exists() else ""
         saved = request.args.get("saved")
         error = request.args.get("error", "")
-        note = ('<p class="ok">Enregistré.</p>' if saved
-                else f'<p class="err">Erreur : {html.escape(error)}</p>' if error else "")
+        note = ('<p class="ok">Saved.</p>' if saved
+                else f'<p class="err">Error: {html.escape(error)}</p>' if error else "")
         body = (f"<h2>{name}</h2>{note}"
-                f'<p><a href="/config/{name}/download">télécharger</a></p>'
+                f'<p><a href="/config/{name}/download">download</a></p>'
                 f'<form method="post" action="/config/{name}">'
                 f'<textarea name="content" spellcheck="false">{html.escape(content)}</textarea>'
-                f'<p><button type="submit">Enregistrer</button></p></form>')
+                f'<p><button type="submit">Save</button></p></form>')
         return PAGE.format(body=body)
 
     @app.get("/config/<name>/download")
@@ -155,9 +155,9 @@ def create_app(
         try:
             path = _check_name(name)
         except FileNotFoundError:
-            return Response("fichier inconnu", status=404)
+            return Response("unknown file", status=404)
         if not path.exists():
-            return Response("fichier absent", status=404)
+            return Response("file missing", status=404)
         return Response(
             path.read_bytes(),
             mimetype="text/yaml",
@@ -169,25 +169,25 @@ def create_app(
         try:
             path = _check_name(name)
         except FileNotFoundError:
-            return Response("fichier inconnu", status=404)
+            return Response("unknown file", status=404)
         content = request.form.get("content", "")
         try:
             parsed = yaml.safe_load(content)
             if parsed is not None and not isinstance(parsed, dict):
-                raise ValueError("le contenu doit être un mapping YAML")
+                raise ValueError("content must be a YAML mapping")
         except Exception as exc:
             return redirect(url_for("config_edit", name=name, error=str(exc)))
         path.write_text(content, encoding="utf-8")
-        log.info("Fichier %s enregistré via l'interface web", name)
+        log.info("File %s saved from the web UI", name)
         if name == "albums.yaml":
             try:
                 on_albums_saved()
             except Exception as exc:
-                return redirect(url_for("config_edit", name=name, error=f"rechargement: {exc}"))
+                return redirect(url_for("config_edit", name=name, error=f"reload: {exc}"))
         return redirect(url_for("config_edit", name=name, saved=1))
 
     def _card_options() -> str:
-        """Cartes connues, celles en TODO d'abord (les plus probables)."""
+        """Known cards, TODO ones first (the most likely targets)."""
         if cards_fn is None:
             return ""
         cards = sorted(cards_fn().values(), key=lambda e: (not e.is_todo, e.uid))
@@ -202,20 +202,20 @@ def create_app(
         q = request.args.get("q", "").strip()
         assigned = request.args.get("assigned", "")
         error = request.args.get("error", "")
-        note = (f'<p class="ok">Carte {html.escape(assigned)} associée.</p>' if assigned
-                else f'<p class="err">Erreur : {html.escape(error)}</p>' if error else "")
-        body = (f'<h2>Recherche dans Roon</h2>{note}'
+        note = (f'<p class="ok">Card {html.escape(assigned)} assigned.</p>' if assigned
+                else f'<p class="err">Error: {html.escape(error)}</p>' if error else "")
+        body = (f'<h2>Search Roon</h2>{note}'
                 f'<form method="get" action="/search">'
                 f'<input type="search" name="q" value="{html.escape(q)}" '
-                f'placeholder="titre et/ou artiste" autofocus> '
-                f'<button type="submit">Chercher</button></form>')
+                f'placeholder="title and/or artist" autofocus> '
+                f'<button type="submit">Search</button></form>')
         if not q or search_fn is None:
             return PAGE.format(body=body)
         results = search_fn(q)
         if results is None:
-            return PAGE.format(body=body + '<p class="err">Roon non connecté.</p>')
+            return PAGE.format(body=body + '<p class="err">Roon not connected.</p>')
         if not results:
-            return PAGE.format(body=body + "<p>Aucun album trouvé.</p>")
+            return PAGE.format(body=body + "<p>No album found.</p>")
         options = _card_options()
         rows = []
         for r in results:
@@ -232,13 +232,13 @@ def create_app(
                           f'<input type="hidden" name="path" value="{html.escape(path_json)}">'
                           f'<input type="hidden" name="artist" value="{html.escape(r["artist"])}">'
                           f'<select name="uid">{options}</select>'
-                          f'<button type="submit">Associer à cette carte</button></form>')
+                          f'<button type="submit">Assign to this card</button></form>')
             rows.append(f'<tr><td><b>{html.escape(r["title"])}</b><br>'
                         f'{html.escape(r["artist"])}{warn}'
                         f'<pre>{html.escape(fragment)}</pre>{assign}</td></tr>')
-        count = (f"<p>{len(results)} album(s) — à copier sous l'UID de la carte "
-                 f"dans <a href='/config/albums.yaml'>albums.yaml</a>, ou à associer "
-                 f"directement à une carte.</p>")
+        count = (f"<p>{len(results)} album(s) — copy under the card's UID "
+                 f"in <a href='/config/albums.yaml'>albums.yaml</a>, or assign "
+                 f"directly to a card.</p>")
         return PAGE.format(body=body + count + f"<table>{''.join(rows)}</table>")
 
     @app.post("/search/assign")
@@ -249,9 +249,9 @@ def create_app(
             path = json.loads(request.form.get("path", ""))
             if (not isinstance(path, list) or len(path) < 2
                     or not all(isinstance(p, str) and p for p in path)):
-                raise ValueError("chemin invalide")
+                raise ValueError("invalid path")
             if cards_fn is None or assign_fn is None or uid not in cards_fn():
-                raise ValueError(f"carte inconnue : {uid}")
+                raise ValueError(f"unknown card: {uid}")
             assign_fn(uid, path, request.form.get("artist", ""))
         except Exception as exc:
             return redirect(url_for("search", q=q, error=str(exc)))
@@ -264,9 +264,9 @@ def start_in_thread(app: Flask, host: str, port: int) -> None:
     import threading
 
     def _serve():
-        # serveur WSGI intégré : suffisant pour un usage LAN mono-utilisateur
+        # built-in WSGI server: enough for single-user LAN use
         app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
 
     thread = threading.Thread(target=_serve, daemon=True, name="web")
     thread.start()
-    log.info("Interface web sur http://%s:%d", host, port)
+    log.info("Web UI on http://%s:%d", host, port)

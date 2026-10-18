@@ -1,10 +1,10 @@
-"""Chargement de la configuration générale (mcard.yaml) et de la table
-RFID → album (albums.yaml).
+"""Loading of the general settings (mcard.yaml) and of the RFID → album
+table (albums.yaml).
 
-albums.yaml est la seule donnée « vivante » : le contrôleur y ajoute
-automatiquement une entrée `album: TODO` quand une carte inconnue est
-présentée, et le serveur web permet de l'éditer. Le fichier est réécrit
-entier à chaque modification, avec un en-tête explicatif.
+albums.yaml is the only "live" data: the controller automatically adds an
+`album: TODO` entry when an unknown card is presented, and the web server
+lets the user edit it. The file is rewritten in full on every change, with
+an explanatory header.
 """
 
 from __future__ import annotations
@@ -24,33 +24,33 @@ TODO_ALBUM = "TODO"
 
 DEFAULTS: dict[str, Any] = {
     "roon": {
-        # Laisser host vide => découverte automatique (SOOD) sur le réseau local.
+        # Leave host empty => automatic discovery (SOOD) on the local network.
         "host": "",
         "port": 9330,
-        "zone_name": "",          # vide => première zone disponible
+        "zone_name": "",          # empty => first available zone
         "token_file": "/var/lib/mcard/roon_token.txt",
     },
     "behavior": {
-        # Que faire quand on retire le CD/vinyle : none (l'album continue,
-        # les boutons restent actifs) | pause | stop
+        # What to do when the CD/vinyl is removed: none (the album keeps
+        # playing, buttons stay active) | pause | stop
         "on_card_removed": "none",
-        # Ignorer une re-détection de la même carte pendant N secondes
+        # Ignore a re-detection of the same card for N seconds
         "redetect_cooldown_s": 3.0,
-        # Carte considérée retirée après N secondes sans réponse (lisse le
-        # test de présence défaillant de l'ACR122U sur certains tags)
+        # Card considered removed after N seconds without an answer (smooths
+        # the ACR122U's flaky presence check on some tags)
         "removal_grace_s": 1.0,
     },
     "lcd": {
-        "i2c_address": 0x27,       # PCF8574 « MH » : 0x27 par défaut (0x3F si A0-A2 pontés)
+        "i2c_address": 0x27,       # PCF8574 "MH": 0x27 by default (0x3F if A0-A2 bridged)
         "i2c_port": 1,
         "cols": 20,
         "rows": 4,
-        # Veille du rétro-éclairage après N secondes sans interaction
-        # (carte posée/retirée, bouton) ; 0 = toujours allumé
+        # Backlight sleeps after N seconds without interaction
+        # (card placed/removed, button); 0 = always on
         "backlight_timeout_s": 120,
     },
     "buttons": {
-        # Numérotation BCM. Chaque bouton relie la broche GPIO à GND.
+        # BCM numbering. Each button connects the GPIO pin to GND.
         "prev": 5,
         "playpause": 6,
         "next": 13,
@@ -80,7 +80,7 @@ def _deep_merge(base: dict, override: dict) -> dict:
 
 @dataclass
 class AppConfig:
-    """Configuration générale, fusion des défauts et de mcard.yaml."""
+    """General settings: defaults merged with mcard.yaml."""
 
     data: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS))
     path: Optional[Path] = None
@@ -93,10 +93,10 @@ class AppConfig:
             with open(path, encoding="utf-8") as fh:
                 loaded = yaml.safe_load(fh) or {}
             if not isinstance(loaded, dict):
-                raise ValueError(f"{path}: le contenu doit être un mapping YAML")
+                raise ValueError(f"{path}: content must be a YAML mapping")
             data = _deep_merge(DEFAULTS, loaded)
         else:
-            log.warning("%s absent, utilisation des valeurs par défaut", path)
+            log.warning("%s missing, using default values", path)
         return cls(data=data, path=path)
 
     def __getitem__(self, key: str) -> Any:
@@ -112,23 +112,22 @@ class AppConfig:
 
 
 ALBUMS_HEADER = """\
-# M-Card — table de correspondance carte RFID -> album Roon
+# M-Card — RFID card -> Roon album mapping
 #
-# Chaque clé est l'UID hexadécimal de la carte (affiché sur l'écran LCD et
-# dans les logs quand une carte inconnue est posée).
+# Each key is the card's hexadecimal UID (shown on the LCD and in the logs
+# when an unknown card is placed).
 #
-# Formats acceptés pour chaque entrée :
+# Accepted formats for each entry:
 #   "UID":
-#     album: "Nom exact de l'album dans Roon"     # requis
-#     artist: "Nom de l'artiste"                  # optionnel (info)
-#   ou, pour lever une ambiguïté (albums homonymes), un chemin Roon explicite :
+#     path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]   # recommended
+#     artist: "Miles Davis"                                         # optional (info)
+#   or the album title alone (matched tolerantly against the library):
 #   "UID":
-#     path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]
+#     album: "Kind of Blue"
 #
-# Une entrée `album: TODO` est ajoutée automatiquement quand une carte
-# inconnue est présentée : remplacez TODO par le nom de l'album, ou mieux,
-# utilisez la page /search de l'interface web, qui donne (ou écrit
-# directement) le chemin `path:` exact.
+# An `album: TODO` entry is added automatically when an unknown card is
+# placed: pair it from the /search page of the web console, which writes
+# the exact `path:` for you.
 """
 
 
@@ -150,7 +149,7 @@ class AlbumEntry:
 
 
 class AlbumStore:
-    """Accès thread-safe à albums.yaml (lecture, ajout auto, rechargement)."""
+    """Thread-safe access to albums.yaml (read, auto-add, reload)."""
 
     def __init__(self, path: Path):
         self.path = Path(path)
@@ -162,12 +161,12 @@ class AlbumStore:
         with self._lock:
             self._entries = {}
             if not self.path.exists():
-                log.warning("%s absent, table d'albums vide", self.path)
+                log.warning("%s missing, empty album table", self.path)
                 return
             with open(self.path, encoding="utf-8") as fh:
                 raw = yaml.safe_load(fh) or {}
             if not isinstance(raw, dict):
-                raise ValueError(f"{self.path}: le contenu doit être un mapping YAML")
+                raise ValueError(f"{self.path}: content must be a YAML mapping")
             for uid, spec in raw.items():
                 uid = str(uid).upper()
                 if isinstance(spec, str):
@@ -181,15 +180,15 @@ class AlbumStore:
                         path=[str(p) for p in path] if path else None,
                     )
                 else:
-                    log.warning("%s: entrée %r ignorée (format invalide)", self.path, uid)
+                    log.warning("%s: entry %r ignored (invalid format)", self.path, uid)
                     continue
                 self._entries[uid] = entry
-            log.info("%d albums chargés depuis %s", len(self._entries), self.path)
+            log.info("%d albums loaded from %s", len(self._entries), self.path)
 
     def reload_and_normalize(self) -> None:
-        """Recharge puis réécrit le fichier au format canonique (après une
-        édition manuelle via l'interface web). Les commentaires sont perdus,
-        comme lors de tout ajout automatique."""
+        """Reload, then rewrite the file in the canonical format (after a
+        manual edit through the web UI). Comments are lost, as with any
+        automatic addition."""
         self.reload()
         with self._lock:
             self._save_locked()
@@ -199,7 +198,7 @@ class AlbumStore:
             return self._entries.get(uid.upper())
 
     def add_todo(self, uid: str) -> AlbumEntry:
-        """Enregistre une carte inconnue avec `album: TODO` et sauvegarde."""
+        """Record an unknown card with `album: TODO` and save."""
         uid = uid.upper()
         with self._lock:
             if uid in self._entries:
@@ -207,17 +206,17 @@ class AlbumStore:
             entry = AlbumEntry(uid=uid, album=TODO_ALBUM)
             self._entries[uid] = entry
             self._save_locked()
-            log.info("Carte inconnue %s ajoutée à %s avec album: TODO", uid, self.path)
+            log.info("Unknown card %s added to %s with album: TODO", uid, self.path)
             return entry
 
     def assign(self, uid: str, path: list[str], artist: str = "") -> AlbumEntry:
-        """Associe une carte (existante ou non) à un chemin Roon et sauvegarde."""
+        """Assign a card (existing or not) to a Roon path and save."""
         uid = uid.upper()
         with self._lock:
             entry = AlbumEntry(uid=uid, artist=artist, path=list(path))
             self._entries[uid] = entry
             self._save_locked()
-            log.info("Carte %s associée à %s", uid, path)
+            log.info("Card %s assigned to %s", uid, path)
             return entry
 
     def all(self) -> dict[str, AlbumEntry]:
@@ -225,10 +224,10 @@ class AlbumStore:
             return dict(self._entries)
 
     def _save_locked(self) -> None:
-        # Écriture à la main plutôt que yaml.safe_dump : même format que les
-        # fragments de la page /search (chemin sur une ligne, path puis artist),
-        # et UID toujours entre guillemets (un UID tout en chiffres serait
-        # sinon relu comme un entier, zéros de tête perdus).
+        # Written by hand rather than with yaml.safe_dump: same format as the
+        # /search page snippets (path on one line, path then artist), and the
+        # UID always quoted (an all-digit UID would otherwise be read back as
+        # an integer, losing its leading zeros).
         def q(text: str) -> str:
             return json.dumps(text, ensure_ascii=False)  # JSON ⊂ YAML
 
