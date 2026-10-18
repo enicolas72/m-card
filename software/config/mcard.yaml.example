@@ -1,50 +1,50 @@
-# M-Card — configuration générale
-# Copier vers /etc/mcard/mcard.yaml (fait par install.sh)
+# M-Card — general settings
+# Copied to /etc/mcard/mcard.yaml (done by install.sh)
 
 roon:
-  # Adresse du serveur Roon. Laisser vide pour la découverte automatique
-  # sur le réseau local (recommandé).
+  # Roon server address. Leave empty for automatic discovery on the
+  # local network (recommended).
   host: ""
   port: 9330
-  # Nom exact de la zone Roon à piloter (Roon -> en bas à droite).
-  # Laisser vide pour prendre la première zone disponible.
+  # Exact name of the Roon zone to control (Roon -> bottom right).
+  # Leave empty to use the first available zone.
   zone_name: ""
   token_file: /var/lib/mcard/roon_token.txt
 
 behavior:
-  # Action quand le CD/vinyle est retiré :
-  #   none  = l'album continue, les boutons restent actifs (défaut)
-  #   pause = mise en pause / stop = arrêt
+  # What to do when the CD/vinyl is removed:
+  #   none  = the album keeps playing, buttons stay active (default)
+  #   pause = pause / stop = stop
   on_card_removed: none
-  # Ignorer une re-détection de la même carte pendant N secondes
+  # Ignore a re-detection of the same card for N seconds
   redetect_cooldown_s: 3.0
-  # Carte considérée retirée après N secondes sans réponse (lisse le test
-  # de présence défaillant de l'ACR122U sur certains tags Mifare Ultralight)
+  # Card considered removed after N seconds without an answer (smooths the
+  # ACR122U's flaky presence check on some Mifare Ultralight tags)
   removal_grace_s: 1.0
 
 lcd:
-  # Adresse I2C du backpack PCF8574 (0x27 en général, 0x3F pour certains ;
-  # vérifier avec : i2cdetect -y 1)
+  # I2C address of the PCF8574 backpack (usually 0x27, 0x3F for some;
+  # check with: i2cdetect -y 1)
   i2c_address: 0x27
   i2c_port: 1
   cols: 20
   rows: 4
-  # Veille du rétro-éclairage après N secondes sans interaction
-  # (carte posée/retirée, bouton) ; 0 = toujours allumé
+  # Backlight sleeps after N seconds without interaction
+  # (card placed/removed, button); 0 = always on
   backlight_timeout_s: 120
 
 buttons:
-  # Numérotation BCM ; chaque bouton relie la broche à GND (pull-up interne)
+  # BCM numbering; each button connects the pin to GND (internal pull-up)
   prev: 5
   playpause: 6
   next: 13
 
 web:
-  host: 0.0.0.0   # accessible sur le LAN : http://mcard.local:8088
+  host: 0.0.0.0   # reachable on the LAN: http://mcard.local:8088
   port: 8088
 
 log:
   file: /var/log/mcard/mcard.log
-  level: INFO      # DEBUG pour le détail
+  level: INFO      # DEBUG for details
   max_bytes: 1000000
   backup_count: 5

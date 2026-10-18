@@ -1,33 +1,41 @@
-# Page de présentation M-Card
+# M-Card presentation page
 
-[`index.html`](index.html) est **autonome** : un seul fichier (≈ 3 Mo) qui
-s'ouvre directement dans un navigateur, sans serveur ni connexion Internet.
-Tout y est embarqué : three.js, polices, cartes, photos, pièces 3D et
-captures de l'interface web.
+Live: **https://enicolas72.github.io/m-card/marketing/** (GitHub Pages, updated on every push to `main`).
 
-## Contenu
+[`index.html`](index.html) is **self-contained**: a single file (~3.5 MB) that
+opens directly in a browser, with no server and no Internet connection.
+Everything is inlined: three.js, fonts, cards, photos, 3D parts and web
+console captures.
 
-- **Rendu 3D temps réel** de l'appareil : les vraies pièces du boîtier
-  (`enclosure/mcard.scad`, exportées en position assemblée), avec l'écran LCD
-  émulé et une carte M-Card qui glisse dans la fente.
-- **Émulation du LCD 20×4** : police HD44780, mise en page et défilement
-  identiques à `software/mcard/display.py`, avec des boutons qui fonctionnent.
-- **Console web** : captures HTML réelles de l'interface (mode `--fake`).
-- Cartes tirées de `card-covers/`, photos du prototype tirées de `versions/proto2/`.
+## Contents
 
-## Régénérer
+- **Real-time 3D rendering** of the device: the actual enclosure parts
+  (`enclosure/mcard.scad`, exported in assembled position) plus render-only
+  parts (LCD module, buttons, screws, USB-C socket), with the LCD emulated
+  and an M-Card sliding into the slot.
+- **20×4 LCD emulation**: HD44780 font, same layout and scrolling as
+  `software/mcard/display.py`.
+- **Web console**: real HTML captures of the interface (`--fake` mode), shown
+  frozen in a three-view carousel.
+- Cards cut from `card-covers/` (git-ignored source artwork), prototype
+  photos from `versions/proto2/`.
+
+## Rebuilding
 
 ```bash
 cd marketing/build
 npm install
-./export-stl.sh      # seulement si le boîtier a changé (OpenSCAD requis)
+./export-stl.sh      # only if the enclosure changed (requires OpenSCAD)
 npm run build        # → ../index.html
 ```
 
-| Dossier / fichier | Rôle |
+| Folder / file | Role |
 |---|---|
-| `src/` | gabarit HTML, CSS, JS (scène 3D, émulateur LCD, logique de page) |
-| `parts.scad` + `export-stl.sh` | pièces assemblées → `stl/` (STL binaires) |
-| `cards/`, `img/` | cartes découpées, photos allégées, logo extrait des cartes |
-| `capture/` | pages de l'interface web capturées en mode `--fake` |
-| `build.mjs` | bundle esbuild + inlining de toutes les ressources |
+| `src/` | HTML template, CSS, JS (3D scene, LCD emulator, card strip, page logic) |
+| `parts.scad` + `export-stl.sh` | assembled parts → `stl/` (binary STLs) |
+| `cards/`, `img/` | cut-out cards, lightweight photos, logo extracted from the cards |
+| `capture/` | web console pages captured in `--fake` mode |
+| `build.mjs` | esbuild bundle + inlining of every asset |
+
+The card strip is drawn on a `<canvas>` on purpose: a CSS-animated strip lost
+tiles (then froze) in Safari next to the WebGL context.

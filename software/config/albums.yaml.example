@@ -1,22 +1,23 @@
-# M-Card — table de correspondance carte RFID -> album Roon
+# M-Card — RFID card -> Roon album mapping
 #
-# Chaque clé est l'UID hexadécimal de la carte (affiché sur l'écran LCD et
-# dans les logs quand une carte inconnue est posée).
+# Each key is the card's hexadecimal UID (shown on the LCD and in the logs
+# when an unknown card is placed).
 #
-# Formats acceptés pour chaque entrée :
+# Accepted formats for each entry:
 #   "UID":
-#     album: "Nom exact de l'album dans Roon"     # requis
-#     artist: "Nom de l'artiste"                  # optionnel (info)
-#   ou, pour lever une ambiguïté (albums homonymes), un chemin Roon explicite :
+#     path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]   # recommended
+#     artist: "Miles Davis"                                         # optional (info)
+#   or the album title alone (matched tolerantly against the library):
 #   "UID":
-#     path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]
+#     album: "Kind of Blue"
 #
-# Une entrée `album: TODO` est ajoutée automatiquement quand une carte
-# inconnue est présentée : remplacez TODO par le nom de l'album.
+# An `album: TODO` entry is added automatically when an unknown card is
+# placed: pair it from the /search page of the web console, which writes
+# the exact `path:` for you.
 
 "04A1B2C3":
-  album: "Kind of Blue"
+  path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]
   artist: "Miles Davis"
 
 "04D4E5F6":
-  album: TODO
+  album: "TODO"

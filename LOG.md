@@ -1,4 +1,28 @@
-# Journal du projet M-Card
+# M-Card project log
+
+## 2026-10-18 18:11 — English docs, short README, MIT license, private sketches
+
+- **GitHub Pages** enabled (by Eric): the presentation page is live at
+  https://enicolas72.github.io/m-card/marketing/.
+- **README.md** rewritten in English as a short pitch + link to that page;
+  everything the page already says better (photo, feature list, flow
+  diagram) was removed. Kept: repository map, build steps, card backup,
+  fake mode, software architecture, credits.
+- **All documentation translated to English**: `docs/` (BOM, WIRING, SETUP,
+  ASSEMBLY, wiring diagram SVG labels), `enclosure/README.md`,
+  `marketing/README.md`, sample configs. Real device UI strings (LCD, web
+  console, still French) are quoted as-is with a translation. Fixes on the
+  way: button order is bottom-to-top (column), SETUP gains the update
+  procedure, `albums.yaml.example` uses the recommended `path:` format,
+  STL regeneration loop includes `icon_plate`.
+- **`versions/idea/`** (original sketches/spec) removed from git and
+  git-ignored; kept locally. It remains in the history of the public repo
+  (not rewritten).
+- **MIT License** added; album artwork in `marketing/build/cards/` is
+  explicitly excluded.
+- **CLAUDE.md**: new rule, everything written in the project is in English
+  (legacy French in code/UI/older log entries to be translated when
+  touched). This log continues in English from this entry on.
 
 ## 2026-10-18 17:56 — Page de présentation (marketing/)
 

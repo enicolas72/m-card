@@ -1,73 +1,72 @@
 # M-Card
 
-Posez un CD ou un vinyle (équipé d'une carte RFID) sur l'appareil : l'album
-se lance sur **Roon**. Boutons physiques ⏮ ⏯ ⏭, écran LCD 20×4 affichant
-l'album et le morceau en cours, interface web locale pour les logs, la
-configuration et la recherche d'albums dans Roon. Aucune connexion Internet — uniquement le réseau local.
+**Re-materialize your music.** One card per album, or one tucked inside the vinyl
+sleeve you already own: drop it in the slot and the album plays on **Roon**. No app,
+no phone, no cloud.
 
-Cahier des charges et croquis d'origine : [versions/idea/](versions/idea/)
+👉 **[See M-Card in action: interactive 3D, display, web console](https://enicolas72.github.io/m-card/marketing/)**
 
-**Le prototype 2 en action** (boîtier V0.3, vinyle posé, lecture en cours) :
+An open-source DIY device: Raspberry Pi 3 B+, ACR122U NFC reader, 20×4 LCD,
+three push buttons, and a 3D-printed enclosure.
 
-![M-Card avec un vinyle](versions/proto2/IMG_0930.jpg)
+## Repository
 
-*Autres photos dans [versions/proto2/](versions/proto2/).*
-
-```
-CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 3B+ ──► Wi-Fi ──► Roon (Mac)
-                                                   │        │
-                                              LCD 20×4   3 boutons
-```
-
-## Contenu du dépôt
-
-| Dossier | Contenu |
+| Path | Contents |
 |---|---|
-| [`software/`](software/) | application Python (`mcard/`), configs d'exemple, `install.sh`, service systemd, tests |
-| [`docs/BOM.md`](docs/BOM.md) | nomenclature — ~15–25 € d'achats, pas de PCB custom |
-| [`docs/WIRING.md`](docs/WIRING.md) | câblage complet + [schéma SVG](docs/wiring-diagram.svg) |
-| [`docs/SETUP.md`](docs/SETUP.md) | carte SD, installation, appairage Roon, dépannage |
-| [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | montage dans le boîtier |
-| [`enclosure/`](enclosure/) | boîtier 3D paramétrique (OpenSCAD) + STL |
-| [`marketing/`](marketing/) | page de présentation autonome ([`index.html`](marketing/index.html), un seul fichier, hors ligne) : rendu 3D temps réel, LCD émulé, captures de la console ; sources et build dans `marketing/build/` |
+| [`software/`](software/) | Python application (`mcard/`), sample configs, `install.sh`, systemd service, tests |
+| [`docs/BOM.md`](docs/BOM.md) | bill of materials, no custom PCB |
+| [`docs/WIRING.md`](docs/WIRING.md) | full wiring + [SVG diagram](docs/wiring-diagram.svg) |
+| [`docs/SETUP.md`](docs/SETUP.md) | SD card, install, Roon pairing, web console, troubleshooting |
+| [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | assembly into the enclosure |
+| [`enclosure/`](enclosure/) | parametric 3D enclosure (OpenSCAD) + print-ready STLs |
+| [`marketing/`](marketing/) | the presentation page: one self-contained offline HTML file, sources in `marketing/build/` |
+| [`versions/`](versions/) | prototype photos |
 
-## Démarrage rapide
+## Build one
 
-1. **Commander** les quelques pièces de la [BOM](docs/BOM.md).
-2. **Breadboard** : câbler LCD + boutons ([WIRING.md](docs/WIRING.md)),
-   brancher l'ACR122U en USB.
-3. **Installer** sur le Pi : [SETUP.md](docs/SETUP.md) — `sudo bash install.sh`.
-4. **Autoriser** l'extension M-Card dans Roon → Settings → Extensions.
-5. Poser une carte inconnue → elle apparaît en `TODO` dans `albums.yaml` →
-   chercher l'album sur `http://mcard.local:8088/search` puis « Associer à
-   cette carte » (écrit un chemin Roon exact `path: ["Library", "Artists",
-   <artiste>, <album>]`). Saisie manuelle d'un `album:` toujours possible via
-   `/config` : le titre est alors résolu de façon tolérante (casse, accents,
-   ponctuation, « Vol. », mots entiers, plus longue correspondance).
-   Tout enregistrement remet `albums.yaml` au format canonique (`path:` sur
-   une ligne). Sauvegarde : `curl -fsS
-   http://mcard.local:8088/config/albums.yaml/download -o
-   backups/albums-$(date +%Y%m%d-%H%M).yaml` (`backups/` est ignoré par git).
-6. **Imprimer** le boîtier et assembler ([ASSEMBLY.md](docs/ASSEMBLY.md)).
+1. **Order** the few parts listed in the [BOM](docs/BOM.md).
+2. **Wire** the LCD and buttons ([WIRING.md](docs/WIRING.md)); plug the ACR122U into USB.
+3. **Install** on the Pi ([SETUP.md](docs/SETUP.md)): `sudo bash install.sh`.
+4. **Enable** the M-Card extension in Roon → Settings → Extensions.
+5. **Pair cards**: an unknown card shows up as `TODO` in `albums.yaml`. Open
+   `http://mcard.local:8088/search`, find the album, and click *Associer à cette carte* (assign to this card; the device UI is in French).
+   This writes an exact Roon path, e.g. `path: ["Library", "Artists", "<artist>", "<album>"]`.
+6. **Print** the enclosure and assemble it ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 
-## Essayer sans matériel (mode simulé)
+Back up your card mappings at any time:
 
 ```bash
-cd software && python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml
-./.venv/bin/python -m mcard --config <dossier-config> --fake
+curl -fsS http://mcard.local:8088/config/albums.yaml/download -o backups/albums-$(date +%Y%m%d-%H%M).yaml
 ```
 
-Les cartes se « posent » au clavier, le LCD s'affiche dans le terminal,
-Roon est simulé. Tests : `./.venv/bin/python -m pytest tests/`.
+## Try it without hardware
 
-## Architecture logicielle
+```bash
+cd software && python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml pytest
+./.venv/bin/python -m mcard --config <config-dir> --fake
+./.venv/bin/python -m pytest tests/
+```
 
-Une queue d'événements unique, un contrôleur central, des threads par
-périphérique — chaque composant matériel a un « fake » pour développer sans Pi :
+In `--fake` mode, type a card UID + Enter to "place" a card and Enter alone to remove
+it. The LCD is drawn in the terminal and Roon is simulated.
+
+## Software architecture
+
+A single event queue, one central controller, and one thread per peripheral. Every
+hardware component has a fake twin, so development needs no Pi:
 
 ```
-nfc_reader (thread) ──┐                        ┌──► roon_client ──► Roon API
-buttons    (GPIO)  ───┼──► queue ──► controller ┼──► display ──► LCD I2C
-roon callbacks ───────┘                        └──► albums.yaml (ajout TODO auto)
-                    webserver (Flask) : état / logs RO / configs RW / recherche Roon
+nfc_reader (thread) ──┐                         ┌──► roon_client ──► Roon API
+buttons    (GPIO)  ───┼──► queue ──► controller ─┼──► display ──► LCD (I²C)
+roon callbacks ───────┘                         └──► albums.yaml (auto TODO entries)
+                    webserver (Flask): status / logs / config / Roon library search
 ```
+
+## License & credits
+
+Code, documentation and enclosure files are released under the [MIT License](LICENSE).
+
+Independent DIY project, not affiliated with or endorsed by Roon Labs. Roon is a
+trademark of Roon Labs LLC. Album artwork shown on the presentation page (and in
+`marketing/build/cards/`) belongs to its respective owners and is not covered by
+the MIT License.

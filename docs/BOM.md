@@ -1,33 +1,33 @@
-# Nomenclature (BOM) — M-Card V0.1
+# Bill of materials (BOM) — M-Card V0.1
 
-## Déjà en votre possession
+## Already on hand
 
-| Composant | Rôle | Note |
+| Part | Role | Note |
 |---|---|---|
-| Raspberry Pi 3 Model B+ | Ordinateur embarqué | Wi-Fi intégré, suffisant |
-| Carte micro-SD (≥ 8 Go) | Système | Raspberry Pi OS Lite 64-bit |
-| LCD 2004A 20×4 + backpack I2C PCF8574 (« MH ») | Affichage album/piste | 4 fils seulement (photo : backpack déjà soudé) |
-| ACS ACR122U (PN532) | Lecteur RFID 13,56 MHz | Reste en USB, aucune soudure ; sorti de sa coque pour l'intégration |
-| Cartes RFID 13,56 MHz (MIFARE/NTAG) | Identification des albums | L'UID suffit, pas d'écriture sur la carte |
-| Imprimante 3D | Boîtier | PLA ou PETG |
+| Raspberry Pi 3 Model B+ | Embedded computer | Built-in Wi-Fi, plenty of power |
+| micro-SD card (≥ 8 GB) | System | Raspberry Pi OS Lite 64-bit |
+| LCD 2004A 20×4 + PCF8574 I2C backpack ("MH") | Album/track display | Only 4 wires (backpack usually pre-soldered) |
+| ACS ACR122U (PN532) | 13.56 MHz RFID reader | Stays on USB, no soldering; taken out of its shell for integration |
+| 13.56 MHz RFID cards (MIFARE/NTAG) | Album identification | Only the UID is used, nothing is written to the card |
+| 3D printer | Enclosure | PLA or PETG |
 
-## À acheter (~15–25 €)
+## To buy (~€15–25)
 
-| Qté | Composant | Rôle | Où (France, livraison rapide) | Prix indicatif |
+| Qty | Part | Role | Where (search terms) | Rough price |
 |---|---|---|---|---|
-| 3 | Bouton poussoir momentané 12 mm à visser (panel mount) | prev / play-pause / next | Amazon.fr « bouton poussoir 12mm momentané » (lot de 5–10) | ~8 € |
-| 1 | Embase USB-C femelle panneau → micro-USB mâle (câble 25–30 cm) | Port d'alimentation arrière propre | Amazon.fr « USB C panel mount micro USB » | ~8 € |
-| 1 | Lot de câbles Dupont femelle-femelle 20 cm | LCD + boutons ↔ GPIO | Amazon.fr / kit électronique | ~5 € |
-| 14 | Inserts filetés à chaud M3 (type Ruthex Ø4,6×5,7) + vis M3 CHC assorties (cf. enclosure/README.md) | Assemblage boîtier V0.2 | Amazon.fr « inserts filetés M3 impression 3D » | ~10 € (lot) |
+| 3 | 12 mm momentary push button, panel mount | prev / play-pause / next | Amazon: "12mm momentary push button" (packs of 5–10) | ~€8 |
+| 1 | Panel-mount female USB-C → male micro-USB (25–30 cm cable) | Clean rear power port | Amazon: "USB C panel mount micro USB" | ~€8 |
+| 1 | Female-female Dupont jumper wires, 20 cm | LCD + buttons ↔ GPIO | Amazon / electronics kit | ~€5 |
+| 14 | M3 heat-set threaded inserts + matching M3 socket head cap screws (see enclosure/README.md) | Enclosure assembly | Amazon: "M3 heat set inserts 3D printing" | ~€10 (pack) |
 
-Alimentation : chargeur USB-C 5 V ⩾ 3 A (type chargeur de téléphone récent) — probablement déjà disponible.
+Power: USB-C charger, 5 V ≥ 3 A (any recent phone charger), probably already on hand.
 
-## Optionnel
+## Optional
 
-| Composant | Pourquoi |
+| Part | Why |
 |---|---|
-| Breadboard + boutons tactiles 6×6 mm | Phase de test avant montage final (souvent déjà dans un kit) |
-| Convertisseur de niveau I2C bidirectionnel (2 canaux) | Par prudence sur le bus I2C 5 V ↔ 3,3 V ; en pratique le montage direct fonctionne (voir WIRING.md) |
-| Ruban adhésif double face / colle chaude | Fixation du lecteur ACR122U dans le dosseret |
+| Breadboard + 6×6 mm tactile buttons | Test phase before final assembly (often included in a kit) |
+| Bidirectional I2C level shifter (2 channels) | Extra caution on the 5 V ↔ 3.3 V I2C bus; in practice the direct connection works fine (see WIRING.md) |
+| Double-sided tape / hot glue | Holding the ACR122U board in the backrest |
 
-**Total à commander : ~15–25 €** selon lots. Aucun PCB custom nécessaire pour la V0.1 : le backpack I2C réduit le câblage à 8 fils Dupont au total.
+**Total to order: ~€15–25** depending on packs. No custom PCB is needed for V0.1: the I2C backpack brings the wiring down to 8 Dupont wires in total.
