@@ -2,8 +2,8 @@
 
 Posez un CD ou un vinyle (équipé d'une carte RFID) sur l'appareil : l'album
 se lance sur **Roon**. Boutons physiques ⏮ ⏯ ⏭, écran LCD 20×4 affichant
-l'album et le morceau en cours, interface web locale pour les logs et la
-configuration. Aucune connexion Internet — uniquement le réseau local.
+l'album et le morceau en cours, interface web locale pour les logs, la
+configuration et la recherche d'albums dans Roon. Aucune connexion Internet — uniquement le réseau local.
 
 Cahier des charges et croquis d'origine : [versions/idea/](versions/idea/)
 
@@ -38,11 +38,11 @@ CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 
 3. **Installer** sur le Pi : [SETUP.md](docs/SETUP.md) — `sudo bash install.sh`.
 4. **Autoriser** l'extension M-Card dans Roon → Settings → Extensions.
 5. Poser une carte inconnue → elle apparaît en `TODO` dans `albums.yaml` →
-   renseigner le nom de l'album via `http://mcard.local:8088/config`
-   (casse, accents, ponctuation et « Vol. » peuvent différer de Roon : le
-   titre est résolu contre la bibliothèque réelle, en mots entiers, la plus
-   longue correspondance l'emportant ; suggestions dans le log en cas
-   d'ambiguïté).
+   chercher l'album sur `http://mcard.local:8088/search` puis « Associer à
+   cette carte » (écrit un chemin Roon exact `path: ["Library", "Artists",
+   <artiste>, <album>]`). Saisie manuelle d'un `album:` toujours possible via
+   `/config` : le titre est alors résolu de façon tolérante (casse, accents,
+   ponctuation, « Vol. », mots entiers, plus longue correspondance).
 6. **Imprimer** le boîtier et assembler ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 
 ## Essayer sans matériel (mode simulé)
@@ -64,5 +64,5 @@ périphérique — chaque composant matériel a un « fake » pour développer s
 nfc_reader (thread) ──┐                        ┌──► roon_client ──► Roon API
 buttons    (GPIO)  ───┼──► queue ──► controller ┼──► display ──► LCD I2C
 roon callbacks ───────┘                        └──► albums.yaml (ajout TODO auto)
-                    webserver (Flask) : état / logs RO / configs RW
+                    webserver (Flask) : état / logs RO / configs RW / recherche Roon
 ```

@@ -14,7 +14,7 @@ All software work happens in `software/` with the local venv (`software/.venv`, 
 
 ```bash
 cd software
-./.venv/bin/python -m pytest tests/          # run tests (56, all mocked hardware)
+./.venv/bin/python -m pytest tests/          # run tests (68, all mocked hardware)
 ./.venv/bin/python -m pytest tests/test_controller.py -k cooldown   # single test
 ./.venv/bin/python -m mcard --config <dir> --fake   # run app with simulated hardware
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)
@@ -45,7 +45,8 @@ software/mcard/
   display.py      Display (4 lines, scrolling ticker thread, accent transliteration for HD44780) over a
                   LcdBackend (CharLcdBackend real / FakeLcdBackend / MemoryLcd in tests)
   webserver.py    Flask: / status, /logs (RO, tail+download), /config/<name> (RW, YAML-validated,
-                  hot-reloads albums.yaml). Only files in EDITABLE_FILES are reachable.
+                  hot-reloads albums.yaml), /search (Roon library search → `path:` fragment,
+                  POST /search/assign writes it via AlbumStore.assign). Only EDITABLE_FILES reachable.
   app.py          composition root; Controller gets `roon` injected after creation (RoonClient needs the queue)
 ```
 
@@ -55,6 +56,6 @@ Config lives in a directory (`--config`), two files: `mcard.yaml` (settings) and
 
 - ACR122U on Linux requires blacklisting `pn533_usb/pn533/nfc` kernel modules (install.sh does it) or nfcpy can't open the reader.
 - Roon pairing: first run needs the extension enabled in Roon → Settings → Extensions; token persisted to `roon.token_file`.
-- `roonapi.play_media(zone_id, ["Library", "Albums", <name>])` needs the exact Roon album name; ambiguous names use an explicit `path:` in albums.yaml.
+- `roonapi.play_media(zone_id, path)` matches each path element by exact title. Roon exposes no stable album ID (browse `item_key`s are session-scoped), so `path: ["Library", "Artists", <artist>, <album>]` is the stable identifier; /search builds it from the albums hierarchy (subtitle = artist), falling back to `["Library", "Albums", <title>]` when the artist isn't in the Artists hierarchy.
 - Tests import `conftest.py` helpers (`MemoryLcd`, `SpyRoon`) directly (`from conftest import ...`).
 - STL exports are ASCII; print orientations are baked into the `part=` transforms (shell prints upside-down).

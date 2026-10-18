@@ -125,7 +125,9 @@ ALBUMS_HEADER = """\
 #     path: ["Library", "Artists", "Miles Davis", "Kind of Blue"]
 #
 # Une entrée `album: TODO` est ajoutée automatiquement quand une carte
-# inconnue est présentée : remplacez TODO par le nom de l'album.
+# inconnue est présentée : remplacez TODO par le nom de l'album, ou mieux,
+# utilisez la page /search de l'interface web, qui donne (ou écrit
+# directement) le chemin `path:` exact.
 """
 
 
@@ -197,6 +199,16 @@ class AlbumStore:
             self._entries[uid] = entry
             self._save_locked()
             log.info("Carte inconnue %s ajoutée à %s avec album: TODO", uid, self.path)
+            return entry
+
+    def assign(self, uid: str, path: list[str], artist: str = "") -> AlbumEntry:
+        """Associe une carte (existante ou non) à un chemin Roon et sauvegarde."""
+        uid = uid.upper()
+        with self._lock:
+            entry = AlbumEntry(uid=uid, artist=artist, path=list(path))
+            self._entries[uid] = entry
+            self._save_locked()
+            log.info("Carte %s associée à %s", uid, path)
             return entry
 
     def all(self) -> dict[str, AlbumEntry]:

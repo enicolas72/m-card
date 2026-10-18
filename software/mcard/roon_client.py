@@ -101,6 +101,49 @@ def best_album_match(target: str, candidates: list[str]) -> tuple[Optional[str],
     return None, top[:5]
 
 
+def album_path(title: str, artist: str, artists: set[str]) -> list[str]:
+    """Chemin de navigation Roon (pour play_media) désignant l'album sans
+    ambiguïté : par l'artiste quand il figure dans Library › Artists, sinon
+    par la liste des albums (albums multi-artistes, artiste inconnu)."""
+    if artist and artist in artists:
+        return ["Library", "Artists", artist, title]
+    return ["Library", "Albums", title]
+
+
+def search_library(
+    query: str,
+    albums: list[tuple[str, str]],
+    artists: set[str],
+    limit: int = 50,
+) -> list[dict]:
+    """Recherche libre dans la bibliothèque : chaque mot de `query` doit
+    apparaître (début de mot ou au milieu, casse/accents ignorés) dans le
+    titre ou l'artiste. Retourne au plus `limit` résultats triés
+    {title, artist, path, warning}."""
+    words = _norm(query).split()
+    if not words:
+        return []
+    title_count: dict[str, int] = {}
+    for title, _ in albums:
+        title_count[title] = title_count.get(title, 0) + 1
+    results = []
+    for title, artist in albums:
+        haystack = _norm(f"{title} {artist}")
+        if not all(w in haystack for w in words):
+            continue
+        path = album_path(title, artist, artists)
+        warning = ""
+        if path[1] == "Albums":
+            warning = ("artiste absent de Library › Artists : chemin par la "
+                       "liste des albums")
+            if title_count[title] > 1:
+                warning += " — titre homonyme, le premier sera joué"
+        results.append({"title": title, "artist": artist, "path": path,
+                        "warning": warning})
+    results.sort(key=lambda r: (_norm(r["title"]), _norm(r["artist"])))
+    return results[:limit]
+
+
 class RoonClient:
     """Enveloppe robuste autour de RoonApi."""
 
@@ -118,9 +161,13 @@ class RoonClient:
         self._zone_name = zone_name
         self._token_file = Path(token_file)
         self._api = None
-        self._albums_cache: list[str] = []
+        self._albums_cache: list[tuple[str, str]] = []  # (titre, artiste)
         self._albums_cache_ts: float = 0.0
+        self._artists_cache: set[str] = set()
         self._lock = threading.Lock()
+        # sérialise les parcours de la bibliothèque (lecture d'une carte et
+        # recherche depuis l'interface web peuvent arriver en même temps)
+        self._browse_lock = threading.Lock()
         self._stop = threading.Event()
         self._thread = threading.Thread(target=self._supervise, daemon=True, name="roon-client")
         self.connected = False
@@ -258,7 +305,8 @@ class RoonClient:
                      entry.display_name(), zone.get("display_name"), entry.path)
             return self._play_path(api, zone_id, entry.path)
 
-        title = self._resolve_album_title(api, entry.album)
+        with self._browse_lock:
+            title = self._resolve_album_title(api, entry.album)
         if title is None:
             return False
         if title != entry.album:
@@ -269,7 +317,8 @@ class RoonClient:
 
     def _play_path(self, api, zone_id: str, path: list[str]) -> bool:
         try:
-            api.play_media(zone_id, path)
+            with self._browse_lock:
+                api.play_media(zone_id, path)
             return True
         except Exception as exc:
             log.error("play_media a échoué: %s", exc)
@@ -293,40 +342,57 @@ class RoonClient:
                       album, len(titles))
         return None
 
+    def search_albums(self, query: str, limit: int = 50) -> Optional[list[dict]]:
+        """Recherche libre pour l'interface web ; None si Roon est déconnecté."""
+        with self._lock:
+            api = self._api
+        if api is None:
+            return None
+        with self._browse_lock:
+            self._album_titles_cached(api)
+            albums, artists = self._albums_cache, self._artists_cache
+        return search_library(query, albums, artists, limit)
+
     def _album_titles_cached(self, api, force_refresh: bool = False) -> tuple[list[str], bool]:
-        """(titres, servi_depuis_le_cache) — cache rafraîchi au-delà de 5 min."""
+        """(titres, servi_depuis_le_cache) — cache rafraîchi au-delà de 5 min.
+        Rafraîchit aussi la liste des artistes (utilisée par la recherche)."""
         import time
 
         now = time.monotonic()
         if (not force_refresh and self._albums_cache
                 and now - self._albums_cache_ts < 300):
-            return self._albums_cache, True
-        titles = self._list_album_titles(api)
-        if titles:  # ne pas écraser un cache valide par un échec de parcours
-            self._albums_cache = titles
+            return [t for t, _ in self._albums_cache], True
+        albums = [(item.get("title", ""), item.get("subtitle", "") or "")
+                  for item in self._list_items(api, "albums")]
+        if albums:  # ne pas écraser un cache valide par un échec de parcours
+            self._albums_cache = albums
             self._albums_cache_ts = now
-        return self._albums_cache, False
+            artists = {item.get("title", "") for item in self._list_items(api, "artists")}
+            if artists:
+                self._artists_cache = artists
+        return [t for t, _ in self._albums_cache], False
 
-    def _list_album_titles(self, api) -> list[str]:
-        """Liste les titres d'albums de la bibliothèque (hiérarchie 'albums', paginée)."""
+    def _list_items(self, api, hierarchy: str) -> list[dict]:
+        """Liste tous les éléments d'une hiérarchie Roon ('albums', 'artists'),
+        paginée. Pour 'albums' : title = album, subtitle = artiste."""
         try:
-            resp = api.browse_browse({"hierarchy": "albums", "pop_all": True})
+            resp = api.browse_browse({"hierarchy": hierarchy, "pop_all": True})
             total = (resp or {}).get("list", {}).get("count", 0)
-            titles: list[str] = []
+            items: list[dict] = []
             offset = 0
             while offset < total:
                 load = api.browse_load(
-                    {"hierarchy": "albums", "offset": offset,
+                    {"hierarchy": hierarchy, "offset": offset,
                      "set_display_offset": offset}
                 )
                 batch = (load or {}).get("items", [])
                 if not batch:
                     break
-                titles.extend(item.get("title", "") for item in batch)
+                items.extend(batch)
                 offset += len(batch)
-            return titles
+            return items
         except Exception as exc:
-            log.error("Parcours de la bibliothèque impossible: %s", exc)
+            log.error("Parcours de la bibliothèque (%s) impossible: %s", hierarchy, exc)
             return []
 
     def control(self, action: str) -> None:

@@ -3,6 +3,8 @@
 - /            : état de l'appareil (morceau en cours, Roon, dernière carte)
 - /logs        : consultation du log (lecture seule)
 - /config      : édition des fichiers de configuration (albums.yaml, mcard.yaml)
+- /search      : recherche d'albums dans Roon → fragment `path:` pour albums.yaml,
+                 ou association directe à une carte
 - /api/status  : état JSON
 
 Aucune authentification : l'appareil n'est accessible que sur le LAN
@@ -12,10 +14,11 @@ Aucune authentification : l'appareil n'est accessible que sur le LAN
 from __future__ import annotations
 
 import html
+import json
 import logging
 from collections import deque
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 from flask import Flask, Response, redirect, request, url_for
 
@@ -41,10 +44,16 @@ PAGE = """<!doctype html>
  pre {{ background: #181d23; padding: 1rem; overflow-x: auto; font-size: .8rem; }}
  button {{ padding: .5rem 1.2rem; background: #2b6cb0; border: 0; color: white;
           border-radius: 4px; cursor: pointer; }}
- .err {{ color: #ff8080; }} .ok {{ color: #7dd87d; }}
+ .err {{ color: #ff8080; }} .ok {{ color: #7dd87d; }} .warn {{ color: #e8c06a; font-size: .8rem; }}
+ input, select {{ background: #181d23; color: #e6e6e6; border: 1px solid #2a3038;
+                 padding: .45rem; border-radius: 4px; max-width: 100%; }}
+ input[type=search] {{ width: 22rem; }}
+ code {{ font-size: .75rem; word-break: break-all; }}
+ td form {{ display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }}
+ td form button {{ padding: .3rem .8rem; }}
 </style></head><body>
 <h1><a href="/">M-Card</a></h1>
-<nav><a href="/">État</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a></nav>
+<nav><a href="/">État</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">Recherche</a></nav>
 {body}
 </body></html>"""
 
@@ -61,6 +70,9 @@ def create_app(
     log_file: Path,
     status_fn: Callable[[], dict],
     on_albums_saved: Callable[[], None],
+    search_fn: Optional[Callable[[str], Optional[list[dict]]]] = None,
+    cards_fn: Optional[Callable[[], dict]] = None,
+    assign_fn: Optional[Callable[[str, list[str], str], object]] = None,
 ) -> Flask:
     app = Flask("mcard")
     config_dir = Path(config_dir)
@@ -157,6 +169,77 @@ def create_app(
             except Exception as exc:
                 return redirect(url_for("config_edit", name=name, error=f"rechargement: {exc}"))
         return redirect(url_for("config_edit", name=name, saved=1))
+
+    def _card_options() -> str:
+        """Cartes connues, celles en TODO d'abord (les plus probables)."""
+        if cards_fn is None:
+            return ""
+        cards = sorted(cards_fn().values(), key=lambda e: (not e.is_todo, e.uid))
+        return "".join(
+            f'<option value="{html.escape(e.uid)}">{html.escape(e.uid)} — '
+            f'{"TODO" if e.is_todo else html.escape(e.display_name())}</option>'
+            for e in cards
+        )
+
+    @app.get("/search")
+    def search():
+        q = request.args.get("q", "").strip()
+        assigned = request.args.get("assigned", "")
+        error = request.args.get("error", "")
+        note = (f'<p class="ok">Carte {html.escape(assigned)} associée.</p>' if assigned
+                else f'<p class="err">Erreur : {html.escape(error)}</p>' if error else "")
+        body = (f'<h2>Recherche dans Roon</h2>{note}'
+                f'<form method="get" action="/search">'
+                f'<input type="search" name="q" value="{html.escape(q)}" '
+                f'placeholder="titre et/ou artiste" autofocus> '
+                f'<button type="submit">Chercher</button></form>')
+        if not q or search_fn is None:
+            return PAGE.format(body=body)
+        results = search_fn(q)
+        if results is None:
+            return PAGE.format(body=body + '<p class="err">Roon non connecté.</p>')
+        if not results:
+            return PAGE.format(body=body + "<p>Aucun album trouvé.</p>")
+        options = _card_options()
+        rows = []
+        for r in results:
+            path_json = json.dumps(r["path"], ensure_ascii=False)
+            fragment = f"path: {path_json}"
+            if r["artist"]:
+                fragment += f'\nartist: {json.dumps(r["artist"], ensure_ascii=False)}'
+            warn = (f'<div class="warn">⚠ {html.escape(r["warning"])}</div>'
+                    if r["warning"] else "")
+            assign = ""
+            if options and assign_fn is not None:
+                assign = (f'<form method="post" action="/search/assign">'
+                          f'<input type="hidden" name="q" value="{html.escape(q)}">'
+                          f'<input type="hidden" name="path" value="{html.escape(path_json)}">'
+                          f'<input type="hidden" name="artist" value="{html.escape(r["artist"])}">'
+                          f'<select name="uid">{options}</select>'
+                          f'<button type="submit">Associer à cette carte</button></form>')
+            rows.append(f'<tr><td><b>{html.escape(r["title"])}</b><br>'
+                        f'{html.escape(r["artist"])}{warn}'
+                        f'<pre>{html.escape(fragment)}</pre>{assign}</td></tr>')
+        count = (f"<p>{len(results)} album(s) — à copier sous l'UID de la carte "
+                 f"dans <a href='/config/albums.yaml'>albums.yaml</a>, ou à associer "
+                 f"directement à une carte.</p>")
+        return PAGE.format(body=body + count + f"<table>{''.join(rows)}</table>")
+
+    @app.post("/search/assign")
+    def search_assign():
+        q = request.form.get("q", "")
+        uid = request.form.get("uid", "").strip().upper()
+        try:
+            path = json.loads(request.form.get("path", ""))
+            if (not isinstance(path, list) or len(path) < 2
+                    or not all(isinstance(p, str) and p for p in path)):
+                raise ValueError("chemin invalide")
+            if cards_fn is None or assign_fn is None or uid not in cards_fn():
+                raise ValueError(f"carte inconnue : {uid}")
+            assign_fn(uid, path, request.form.get("artist", ""))
+        except Exception as exc:
+            return redirect(url_for("search", q=q, error=str(exc)))
+        return redirect(url_for("search", q=q, assigned=uid))
 
     return app
 

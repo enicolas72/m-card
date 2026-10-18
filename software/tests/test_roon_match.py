@@ -2,7 +2,8 @@
 
 import queue
 
-from mcard.roon_client import RoonClient, best_album_match, titles_match
+from mcard.roon_client import (RoonClient, album_path, best_album_match,
+                                search_library, titles_match)
 
 LIBRARY = [
     "The Girl in the Other Room",
@@ -66,20 +67,28 @@ def test_punctuation_and_volume_ignored():
 
 
 class FakeBrowseApi:
-    """Simule browse_browse/browse_load de pyroon (pagination par 100)."""
+    """Simule browse_browse/browse_load de pyroon (pagination par 100).
+    `titles` : titres seuls ou couples (titre, artiste)."""
 
-    def __init__(self, titles):
+    def __init__(self, titles, artists=()):
         self.titles = titles
+        self.artists = list(artists)
         self.load_calls = 0
 
+    def _items(self, hierarchy):
+        if hierarchy == "artists":
+            return [{"title": a} for a in self.artists]
+        assert hierarchy == "albums"
+        return [{"title": t[0], "subtitle": t[1]} if isinstance(t, tuple)
+                else {"title": t} for t in self.titles]
+
     def browse_browse(self, opts):
-        assert opts["hierarchy"] == "albums"
-        return {"list": {"count": len(self.titles)}}
+        return {"list": {"count": len(self._items(opts["hierarchy"]))}}
 
     def browse_load(self, opts):
         self.load_calls += 1
         offset = opts["offset"]
-        return {"items": [{"title": t} for t in self.titles[offset:offset + 100]]}
+        return {"items": self._items(opts["hierarchy"])[offset:offset + 100]}
 
 
 def make_client():
@@ -90,7 +99,8 @@ def test_list_album_titles_paginates():
     titles = [f"Album {i:03d}" for i in range(250)]
     api = FakeBrowseApi(titles)
     client = make_client()
-    assert client._list_album_titles(api) == titles
+    items = client._list_items(api, "albums")
+    assert [i["title"] for i in items] == titles
     assert api.load_calls == 3  # 100 + 100 + 50
 
 
@@ -123,3 +133,63 @@ def test_longest_shared_part_wins():
     library = ["Electronica: The Heart of Noise, Vol. 2", "Noise"]
     found, _ = best_album_match("Electronica The Heart of Noise", library)
     assert found == "Electronica: The Heart of Noise, Vol. 2"
+
+
+# ---- recherche libre (page /search) ------------------------------------
+
+SEARCH_LIBRARY = [
+    ("Electronica 1: The Time Machine", "Jean-Michel Jarre"),
+    ("Electronica 2: The Heart of Noise", "Jean-Michel Jarre"),
+    ("Oxygène", "Jean-Michel Jarre"),
+    ("Greatest Hits", "Queen"),
+    ("Greatest Hits", "ABBA"),
+    ("Bande originale", "Artistes divers"),
+]
+SEARCH_ARTISTS = {"Jean-Michel Jarre", "Queen", "ABBA"}
+
+
+def test_search_all_words_any_order_accents_ignored():
+    results = search_library("jarre oxygene", SEARCH_LIBRARY, SEARCH_ARTISTS)
+    assert [r["title"] for r in results] == ["Oxygène"]
+
+
+def test_search_partial_words_and_sorted():
+    results = search_library("electr", SEARCH_LIBRARY, SEARCH_ARTISTS)
+    assert [r["title"] for r in results] == [
+        "Electronica 1: The Time Machine", "Electronica 2: The Heart of Noise"]
+
+
+def test_search_path_goes_through_artist():
+    results = search_library("greatest", SEARCH_LIBRARY, SEARCH_ARTISTS)
+    assert {tuple(r["path"]) for r in results} == {
+        ("Library", "Artists", "ABBA", "Greatest Hits"),
+        ("Library", "Artists", "Queen", "Greatest Hits"),
+    }
+    assert all(r["warning"] == "" for r in results)
+
+
+def test_search_falls_back_to_albums_path_with_warning():
+    (result,) = search_library("bande", SEARCH_LIBRARY, SEARCH_ARTISTS)
+    assert result["path"] == ["Library", "Albums", "Bande originale"]
+    assert "Artists" in result["warning"]
+
+
+def test_search_empty_query_and_limit():
+    assert search_library("  ", SEARCH_LIBRARY, SEARCH_ARTISTS) == []
+    assert len(search_library("e", SEARCH_LIBRARY, SEARCH_ARTISTS, limit=2)) == 2
+
+
+def test_album_path_without_artist():
+    assert album_path("X", "", {"A"}) == ["Library", "Albums", "X"]
+
+
+def test_client_search_uses_library_and_artists():
+    client = make_client()
+    client._api = FakeBrowseApi(SEARCH_LIBRARY, SEARCH_ARTISTS)
+    (result,) = client.search_albums("time machine")
+    assert result["path"] == ["Library", "Artists", "Jean-Michel Jarre",
+                              "Electronica 1: The Time Machine"]
+
+
+def test_client_search_disconnected_returns_none():
+    assert make_client().search_albums("x") is None

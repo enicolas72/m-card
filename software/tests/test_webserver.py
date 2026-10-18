@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from mcard.webserver import create_app
@@ -79,3 +81,63 @@ def test_unknown_config_file_404(client):
     assert client.get("/config/../etc/passwd").status_code in (404, 308)
     assert client.get("/config/autre.yaml").status_code == 404
     assert client.post("/config/autre.yaml", data={"content": "x: 1"}).status_code == 404
+
+
+# ---- recherche + association (page /search) ------------------------------
+
+@pytest.fixture
+def search_client(tmp_path):
+    from mcard.config import AlbumStore
+    from mcard.roon_client import search_library
+
+    (tmp_path / "albums.yaml").write_text('"04AA":\n  album: TODO\n', encoding="utf-8")
+    store = AlbumStore(tmp_path / "albums.yaml")
+    library = [("Electronica 1: The Time Machine", "Jean-Michel Jarre")]
+    app = create_app(
+        config_dir=tmp_path,
+        log_file=tmp_path / "mcard.log",
+        status_fn=dict,
+        on_albums_saved=store.reload,
+        search_fn=lambda q: search_library(q, library, {"Jean-Michel Jarre"}),
+        cards_fn=store.all,
+        assign_fn=store.assign,
+    )
+    app.config["TESTING"] = True
+    test_client = app.test_client()
+    test_client.store = store
+    return test_client
+
+
+def test_search_shows_path_fragment(search_client):
+    page = search_client.get("/search?q=time+machine").get_data(as_text=True)
+    assert ('path: [&quot;Library&quot;, &quot;Artists&quot;, &quot;Jean-Michel Jarre&quot;, '
+            '&quot;Electronica 1: The Time Machine&quot;]') in page
+    assert "04AA — TODO" in page
+
+
+def test_search_roon_disconnected(tmp_path):
+    app = create_app(config_dir=tmp_path, log_file=tmp_path / "x.log", status_fn=dict,
+                     on_albums_saved=lambda: None, search_fn=lambda q: None)
+    page = app.test_client().get("/search?q=x").get_data(as_text=True)
+    assert "Roon non connecté" in page
+
+
+def test_assign_writes_path_to_albums_yaml(search_client):
+    path = ["Library", "Artists", "Jean-Michel Jarre", "Electronica 1: The Time Machine"]
+    response = search_client.post("/search/assign", data={
+        "uid": "04aa", "path": json.dumps(path), "artist": "Jean-Michel Jarre", "q": "time"})
+    assert response.status_code == 302
+    assert "assigned=04AA" in response.headers["Location"]
+    entry = search_client.store.lookup("04AA")
+    assert entry.path == path and not entry.is_todo
+    search_client.store.reload()  # bien persisté sur disque
+    assert search_client.store.lookup("04AA").path == path
+
+
+def test_assign_rejects_unknown_card_and_bad_path(search_client):
+    bad_uid = search_client.post("/search/assign", data={
+        "uid": "FFFF", "path": '["Library", "Albums", "X"]'})
+    assert "error=" in bad_uid.headers["Location"]
+    bad_path = search_client.post("/search/assign", data={"uid": "04AA", "path": "pas du json"})
+    assert "error=" in bad_path.headers["Location"]
+    assert search_client.store.lookup("04AA").is_todo

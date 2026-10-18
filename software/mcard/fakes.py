@@ -15,6 +15,7 @@ import sys
 import threading
 
 from .config import AlbumEntry
+from .roon_client import search_library
 from .display import LcdBackend
 from .events import CardPresented, CardRemoved, NowPlaying, RoonConnection, Shutdown
 
@@ -70,6 +71,17 @@ class FakeNfcReader:
         self._queue.put(Shutdown())
 
 
+FAKE_LIBRARY = [
+    ("Kind of Blue", "Miles Davis"),
+    ("Electronica 1: The Time Machine", "Jean-Michel Jarre"),
+    ("Electronica 2: The Heart of Noise", "Jean-Michel Jarre"),
+    ("Greatest Hits", "Queen"),
+    ("Greatest Hits", "ABBA"),
+    ("Bande originale", "Artistes divers"),
+]
+FAKE_ARTISTS = {"Miles Davis", "Jean-Michel Jarre", "Queen", "ABBA"}
+
+
 class FakeRoonClient:
     """Simule Roon : accepte tout album ne contenant pas « introuvable »."""
 
@@ -94,6 +106,9 @@ class FakeRoonClient:
         self._queue.put(NowPlaying(state="playing", album=entry.display_name(),
                                    track="Piste 1", artist=entry.artist))
         return True
+
+    def search_albums(self, query: str, limit: int = 50) -> list[dict]:
+        return search_library(query, FAKE_LIBRARY, FAKE_ARTISTS, limit)
 
     def control(self, action: str) -> None:
         log.info("[FAKE ROON] commande: %s", action)

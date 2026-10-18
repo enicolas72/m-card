@@ -1,5 +1,33 @@
 # Journal du projet M-Card
 
+## 2026-10-18 15:05 — Page de recherche d'albums Roon (/search)
+
+Demande d'Eric : identifier les albums par un ID Roon dans `albums.yaml`.
+**Constat** : l'API d'extension Roon n'expose aucun ID stable — les
+`item_key` de navigation ne valent que pour la session de browse. Seul
+identifiant durable : le chemin de navigation, matché titre exact par titre
+exact par `play_media`. Décision (Eric) : la page produit **toujours** un
+`path:`, jamais un `album:` approximatif.
+
+- `roon_client` : `search_library()` (pure, testée) — tous les mots de la
+  requête présents dans « titre artiste » normalisés, tri par titre, 50 max ;
+  `album_path()` → `["Library", "Artists", artiste, titre]` si l'artiste
+  (subtitle de la hiérarchie `albums`) existe dans la hiérarchie `artists`,
+  sinon repli `["Library", "Albums", titre]` avec avertissement (compilations,
+  multi-artistes ; homonymes signalés). Le cache 5 min liste désormais
+  (titre, artiste) + l'ensemble des artistes (`_list_items` générique).
+  Nouveau `_browse_lock` : sérialise les parcours (lecture de carte vs
+  recherche web en parallèle).
+- `AlbumStore.assign(uid, path, artist)` ; page `/search` (fragment YAML à
+  copier + bouton « Associer à cette carte », cartes TODO en premier) et
+  `POST /search/assign` (UID doit exister, chemin JSON validé).
+- `FakeRoonClient.search_albums` sur une mini-bibliothèque pour `--fake`.
+- Limites connues : noms « Library »/« Artists » = Roon en anglais ;
+  l'association réécrit `albums.yaml` (commentaires perdus, comme add_todo).
+  Non encore validé contre le vrai Roon.
+
+12 tests ajoutés (68 au total), vérification bout en bout en mode `--fake`.
+
 ## 2026-10-18 14:33 — Correspondance des titres d'albums en mots entiers
 
 Deux faux « ambigu » constatés sur le Pi :

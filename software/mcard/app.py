@@ -86,6 +86,9 @@ def run(config_dir: Path, fake: bool = False) -> int:
         log_file=log_file,
         status_fn=lambda: dict(controller.status),
         on_albums_saved=albums.reload,
+        search_fn=roon.search_albums,
+        cards_fn=albums.all,
+        assign_fn=albums.assign,
     )
     start_in_thread(
         web_app,

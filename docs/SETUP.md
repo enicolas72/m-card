@@ -45,8 +45,9 @@ journalctl -u mcard -f
 3. Poser une carte RFID sur le lecteur :
    - carte inconnue → le LCD affiche l'UID, une entrée `album: TODO`
      apparaît dans `/etc/mcard/albums.yaml`
-   - remplacer `TODO` par le nom exact de l'album dans Roon (via
-     l'interface web, cf. ci-dessous)
+   - associer l'album : page `/search` de l'interface web (recherche →
+     « Associer à cette carte »), ou remplacer `TODO` à la main dans
+     `/etc/mcard/albums.yaml`
    - reposer la carte → l'album se lance.
 
 ## 4. Interface web (logs + configuration)
@@ -58,6 +59,7 @@ Depuis n'importe quel navigateur du réseau local :
 | `http://mcard.local:8088/` | état : morceau en cours, connexion Roon, dernière carte |
 | `http://mcard.local:8088/logs` | journal (lecture seule, téléchargeable) |
 | `http://mcard.local:8088/config` | édition de `albums.yaml` et `mcard.yaml` (YAML validé avant sauvegarde, rechargement à chaud des albums) |
+| `http://mcard.local:8088/search` | recherche libre d'albums dans Roon → fragment `path:` exact à copier, ou bouton « Associer à cette carte » (cartes en TODO proposées en premier) |
 
 ## 5. Réglages utiles (`/etc/mcard/mcard.yaml`)
 
