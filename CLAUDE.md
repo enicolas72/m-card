@@ -14,7 +14,7 @@ All software work happens in `software/` with the local venv (`software/.venv`, 
 
 ```bash
 cd software
-./.venv/bin/python -m pytest tests/          # run tests (29, all mocked hardware)
+./.venv/bin/python -m pytest tests/          # run tests (56, all mocked hardware)
 ./.venv/bin/python -m pytest tests/test_controller.py -k cooldown   # single test
 ./.venv/bin/python -m mcard --config <dir> --fake   # run app with simulated hardware
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)

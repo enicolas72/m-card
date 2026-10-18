@@ -1,5 +1,24 @@
 # Journal du projet M-Card
 
+## 2026-10-18 14:33 — Correspondance des titres d'albums en mots entiers
+
+Deux faux « ambigu » constatés sur le Pi :
+
+1. « Electronica Vol 1 The Time Machine » → candidats `['I', 'V']` :
+   l'inclusion se faisait **par sous-chaîne**, donc tout album d'une lettre
+   « correspondait » à n'importe quel titre contenant cette lettre.
+   → `_norm` découpe désormais en mots (ponctuation supprimée, apostrophes
+   collées : « l'emprise » ~ « lemprise »), ignore les mots `vol`/`volume`,
+   et l'inclusion se teste **en mots entiers contigus** (`_contains_words`).
+   `titles_match` (comparaison carte re-posée) en bénéficie aussi.
+2. « Electronica The Heart of Noise » → `['Electronica: The Heart of Noise,
+   Vol. 2', 'Noise']` : « Noise » est bien un mot entier du titre.
+   → départage par **plus longue partie commune** (en mots) ; ambigu
+   seulement en cas d'égalité (« Live » vs « Live at… »/« Live in… » reste
+   ambigu, comme voulu).
+
+3 tests ajoutés (56 au total, tous verts).
+
 ## 2026-07-31 — Réorganisation des répertoires (par Eric)
 
 `hardware/enclosure/` remonte en `enclosure/` ; `idea/` (croquis et photos

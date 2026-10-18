@@ -38,28 +38,48 @@ APP_INFO = {
 RECONNECT_DELAY_S = 5.0
 
 
+# Mots ignorés à la comparaison : « Vol. 1 », « Volume 1 » et « 1 » se valent.
+_NOISE_WORDS = {"vol", "volume"}
+
+
 def _norm(text: str) -> str:
-    """Normalise un titre pour comparaison : casse, accents, apostrophes, espaces."""
+    """Normalise un titre pour comparaison : casse, accents, ponctuation, espaces.
+
+    Le résultat est une suite de mots séparés par une espace unique.
+    """
     text = text.replace("’", "'").replace("‘", "'").casefold()
     text = unicodedata.normalize("NFKD", text)
     text = "".join(c for c in text if not unicodedata.combining(c))
-    return re.sub(r"\s+", " ", text).strip()
+    text = text.replace("'", "")  # « l'emprise » ~ « lemprise », pas « l emprise »
+    words = re.sub(r"[\W_]+", " ", text).split()
+    return " ".join(w for w in words if w not in _NOISE_WORDS)
+
+
+def _contains_words(outer: str, inner: str) -> bool:
+    """`inner` apparaît-il dans `outer` en mots entiers ? (titres normalisés)
+    Évite qu'un album « I » corresponde à tout titre contenant la lettre i."""
+    return f" {inner} " in f" {outer} "
+
+
+def _loose_eq(na: str, nb: str) -> bool:
+    return bool(na) and bool(nb) and (
+        na == nb or _contains_words(na, nb) or _contains_words(nb, na))
 
 
 def titles_match(a: str, b: str) -> bool:
     """Deux titres d'album désignent-ils le même album ? (tolérant :
-    casse/accents ignorés, inclusion acceptée — « Nevermore » ~ « Nevermore 2023 »)."""
-    na, nb = _norm(a), _norm(b)
-    return bool(na) and bool(nb) and (na == nb or na in nb or nb in na)
+    casse/accents/ponctuation ignorés, inclusion en mots entiers acceptée —
+    « Nevermore » ~ « Nevermore 2023 »)."""
+    return _loose_eq(_norm(a), _norm(b))
 
 
 def best_album_match(target: str, candidates: list[str]) -> tuple[Optional[str], list[str]]:
     """Retrouve `target` dans `candidates` avec tolérance.
 
     Retourne (titre_exact_de_la_bibliothèque | None, suggestions).
-    Priorité : égalité normalisée, puis inclusion (dans un seul sens ou
-    l'autre) si elle est non ambiguë. En cas d'ambiguïté, retourne None et
-    jusqu'à 5 suggestions pour les logs.
+    Priorité : égalité normalisée, puis inclusion en mots entiers (dans un
+    sens ou l'autre), la plus longue partie commune l'emportant. En cas
+    d'égalité, retourne None et jusqu'à 5 suggestions pour les logs.
     """
     nt = _norm(target)
     if not nt:
@@ -67,10 +87,18 @@ def best_album_match(target: str, candidates: list[str]) -> tuple[Optional[str],
     exact = [c for c in candidates if _norm(c) == nt]
     if exact:
         return exact[0], []
-    partial = [c for c in candidates if nt in _norm(c) or _norm(c) in nt]
+    partial = [c for c in candidates if _loose_eq(nt, _norm(c))]
     if len(partial) == 1:
         return partial[0], []
-    return None, partial[:5]
+    # Plusieurs inclusions : la plus longue partie commune l'emporte
+    # (« Electronica: The Heart of Noise, Vol. 2 » bat « Noise »).
+    # Une inclusion = le plus court des deux titres, compté en mots.
+    shared = {c: min(len(nt.split()), len(_norm(c).split())) for c in partial}
+    best = max(shared.values(), default=0)
+    top = [c for c in partial if shared[c] == best]
+    if len(top) == 1:
+        return top[0], []
+    return None, top[:5]
 
 
 class RoonClient:

@@ -52,6 +52,19 @@ def test_empty_target():
     assert best_album_match("", LIBRARY) == (None, [])
 
 
+def test_short_titles_do_not_match_inside_words():
+    # albums « I » et « V » : ne doivent pas correspondre à toute lettre i/v
+    library = ["I", "V", "Electronica 1: The Time Machine"]
+    found, _ = best_album_match("Electronica Vol 1 The Time Machine", library)
+    assert found == "Electronica 1: The Time Machine"
+
+
+def test_punctuation_and_volume_ignored():
+    library = ["Electronica 2: The Heart of Noise"]
+    found, _ = best_album_match("Electronica Vol. 2 - The Heart Of Noise", library)
+    assert found == "Electronica 2: The Heart of Noise"
+
+
 class FakeBrowseApi:
     """Simule browse_browse/browse_load de pyroon (pagination par 100)."""
 
@@ -104,3 +117,9 @@ def test_titles_match_tolerant():
     assert titles_match("L'Emprise", "l\u2019emprise")
     assert not titles_match("Kind of Blue", "Abbey Road")
     assert not titles_match("", "Abbey Road")
+
+
+def test_longest_shared_part_wins():
+    library = ["Electronica: The Heart of Noise, Vol. 2", "Noise"]
+    found, _ = best_album_match("Electronica The Heart of Noise", library)
+    assert found == "Electronica: The Heart of Noise, Vol. 2"
