@@ -73,6 +73,7 @@ From any browser on the local network:
 - `lcd.i2c_address`: `0x27` by default; check with `i2cdetect -y 1`.
 - `lcd.backlight_timeout_s`: backlight sleeps after N s without interaction
   (default 120; 0 = always on). Any card or button wakes it up.
+- `web.language`: web console language, `en` (default) or `fr`.
 - After a change: `sudo systemctl restart mcard`.
 
 ## 6. Development without a Raspberry Pi (fake mode)

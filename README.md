@@ -32,6 +32,8 @@ three push buttons, and a 3D-printed enclosure.
    This writes an exact Roon path, e.g. `path: ["Library", "Artists", "<artist>", "<album>"]`.
 6. **Print** the enclosure and assemble it ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 
+The web console speaks English or French (`web.language: en | fr` in `mcard.yaml`).
+
 Back up your card mappings at any time:
 
 ```bash

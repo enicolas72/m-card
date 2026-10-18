@@ -163,3 +163,47 @@ def test_config_download_returns_raw_file(client):
 def test_config_download_rejects_other_files(client):
     assert client.get("/config/mcard.log/download").status_code == 404
     assert client.get("/config/..%2Fmcard.log/download").status_code == 404
+
+
+# ---- web console language (web.language) -----------------------------------
+
+def make_app(tmp_path, **kwargs):
+    from mcard.roon_client import search_library
+
+    (tmp_path / "albums.yaml").write_text('"04AA":\n  album: TODO\n', encoding="utf-8")
+    library = [("Bande originale", "Artistes divers")]
+    app = create_app(config_dir=tmp_path, log_file=tmp_path / "missing.log",
+                     status_fn=lambda: {"roon_connected": True}, on_albums_saved=lambda: None,
+                     search_fn=lambda q: search_library(q, library, set()), **kwargs)
+    app.config["TESTING"] = True
+    return app.test_client()
+
+
+def test_english_is_the_default(tmp_path):
+    page = make_app(tmp_path).get("/").get_data(as_text=True)
+    assert '<html lang="en">' in page
+    assert ">Status</a>" in page and "connected" in page and "Card in slot" in page
+
+
+def test_french_console(tmp_path):
+    client = make_app(tmp_path, language="fr")
+    status = client.get("/").get_data(as_text=True)
+    assert '<html lang="fr">' in status
+    assert ">État</a>" in status and ">Recherche</a>" in status
+    assert "connecté" in status and "Carte posée" in status and "aucune" in status
+    search = client.get("/search?q=bande").get_data(as_text=True)
+    assert "Recherche dans Roon" in search
+    assert "artiste absent de Library › Artists" in search
+    assert "1 album(s) — à copier sous l'UID" in search
+    assert "fichier de log absent" in client.get("/logs").get_data(as_text=True)
+    assert client.get("/config/nope.yaml").get_data(as_text=True) == "fichier inconnu"
+
+
+def test_unknown_language_falls_back_to_english(tmp_path):
+    page = make_app(tmp_path, language="de").get("/").get_data(as_text=True)
+    assert '<html lang="en">' in page and ">Status</a>" in page
+
+
+def test_every_link_uses_the_console_link_color(client):
+    page = client.get("/config").get_data(as_text=True)
+    assert " a { color: #7ab8ff; }" in page

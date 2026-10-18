@@ -88,3 +88,20 @@ def test_saved_file_round_trips_tricky_titles(tmp_path):
     assert store.lookup("AA01").path == path
     assert store.lookup("AA01").artist == "AC/DC"
     assert store.lookup("0012").is_todo
+
+
+def test_unknown_settings_are_reported(tmp_path, caplog):
+    # the classic mistake: `language` not indented under `web`
+    (tmp_path / "mcard.yaml").write_text(
+        "web:\n  port: 8088\n\nlanguage:\n  fr\n\nlcd:\n  colz: 20\n", encoding="utf-8")
+    config = AppConfig.load(tmp_path)
+    assert config.get("web", "language") == "en"
+    messages = " ".join(r.getMessage() for r in caplog.records)
+    assert "unknown setting 'language' ignored (did you mean web.language?" in messages
+    assert "unknown setting 'lcd.colz' ignored" in messages
+
+
+def test_legacy_button_names_are_not_reported(tmp_path, caplog):
+    (tmp_path / "mcard.yaml").write_text("buttons:\n  play: 6\n  pause: 19\n", encoding="utf-8")
+    AppConfig.load(tmp_path)
+    assert "unknown setting" not in caplog.text

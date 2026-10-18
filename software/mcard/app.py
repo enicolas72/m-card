@@ -89,6 +89,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
         search_fn=roon.search_albums,
         cards_fn=albums.all,
         assign_fn=albums.assign,
+        language=config.get("web", "language", default="en"),
     )
     start_in_thread(
         web_app,

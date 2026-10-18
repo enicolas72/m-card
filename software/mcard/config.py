@@ -58,6 +58,7 @@ DEFAULTS: dict[str, Any] = {
     "web": {
         "host": "0.0.0.0",
         "port": 8088,
+        "language": "en",  # web console language: en | fr
     },
     "log": {
         "file": "/var/log/mcard/mcard.log",
@@ -78,6 +79,26 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return out
 
 
+# sections whose keys are free-form (legacy button names play/pause are accepted)
+_OPEN_SECTIONS = {"buttons"}
+
+
+def _warn_unknown_keys(loaded: dict, path: Path) -> None:
+    """Log keys of mcard.yaml that M-Card does not know (typo, wrong
+    indentation): they would otherwise be silently ignored."""
+    for key, value in loaded.items():
+        if key not in DEFAULTS:
+            homes = [f"{section}.{key}" for section, sub in DEFAULTS.items()
+                     if isinstance(sub, dict) and key in sub]
+            hint = f" (did you mean {', '.join(homes)}? check the indentation)" if homes else ""
+            log.warning("%s: unknown setting %r ignored%s", path, key, hint)
+        elif (isinstance(value, dict) and isinstance(DEFAULTS[key], dict)
+              and key not in _OPEN_SECTIONS):
+            for sub in value:
+                if sub not in DEFAULTS[key]:
+                    log.warning("%s: unknown setting %r ignored", path, f"{key}.{sub}")
+
+
 @dataclass
 class AppConfig:
     """General settings: defaults merged with mcard.yaml."""
@@ -94,6 +115,7 @@ class AppConfig:
                 loaded = yaml.safe_load(fh) or {}
             if not isinstance(loaded, dict):
                 raise ValueError(f"{path}: content must be a YAML mapping")
+            _warn_unknown_keys(loaded, path)
             data = _deep_merge(DEFAULTS, loaded)
         else:
             log.warning("%s missing, using default values", path)

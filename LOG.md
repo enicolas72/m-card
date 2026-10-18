@@ -1,5 +1,22 @@
 # M-Card project log
 
+## 2026-10-18 19:02 — Web console language setting, link style, unknown-key warnings
+
+- **`web.language: en | fr`** (default `en`). Strings stay English in the
+  code (project rule); `webserver.TRANSLATIONS` maps each English string to
+  its French version, falling back to English when missing. Covers nav,
+  status table, messages, errors, search warnings (translated part by part)
+  and `<html lang>`. Unknown value → English + log warning. Read at start-up.
+  LCD stays English-only for now; `albums.yaml` header stays English.
+- **Links**: only `nav a` had a color, other links used browser defaults
+  (dark blue / purple once visited). A global `a` rule now gives every link
+  the menu blue.
+- **Unknown settings in `mcard.yaml` are logged** at load time, with a hint
+  when the key exists in another section — Eric's `language:` at top level
+  instead of under `web:` was silently ignored. Free-form `buttons` section
+  (legacy play/pause names) is not checked. Sample config: no warnings.
+- 6 tests added (79 total).
+
 ## 2026-10-18 18:19 — Full English translation; versions/ untracked
 
 - **Whole codebase translated to English** (split across three parallel

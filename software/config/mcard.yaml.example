@@ -42,6 +42,8 @@ buttons:
 web:
   host: 0.0.0.0   # reachable on the LAN: http://mcard.local:8088
   port: 8088
+  # Web console language: en (English) or fr (French). Restart to apply.
+  language: en
 
 log:
   file: /var/log/mcard/mcard.log

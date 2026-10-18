@@ -18,7 +18,7 @@ All software work happens in `software/` with the local venv (`software/.venv`, 
 
 ```bash
 cd software
-./.venv/bin/python -m pytest tests/          # run tests (73, all mocked hardware)
+./.venv/bin/python -m pytest tests/          # run tests (79, all mocked hardware)
 ./.venv/bin/python -m pytest tests/test_controller.py -k cooldown   # single test
 ./.venv/bin/python -m mcard --config <dir> --fake   # run app with simulated hardware
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)
@@ -52,7 +52,7 @@ software/mcard/
                   LcdBackend (CharLcdBackend real / FakeLcdBackend / MemoryLcd in tests)
   webserver.py    Flask: / status, /logs (RO, tail+download), /config/<name> (RW, YAML-validated, raw GET at /config/<name>/download,
                   hot-reloads albums.yaml), /search (Roon library search → `path:` fragment,
-                  POST /search/assign writes it via AlbumStore.assign). Only EDITABLE_FILES reachable.
+                  POST /search/assign writes it via AlbumStore.assign). UI strings are English in code; `TRANSLATIONS` maps them for `web.language` (en|fr). Only EDITABLE_FILES reachable.
   app.py          composition root; Controller gets `roon` injected after creation (RoonClient needs the queue)
 ```
 
