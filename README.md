@@ -43,6 +43,10 @@ CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 
    <artiste>, <album>]`). Saisie manuelle d'un `album:` toujours possible via
    `/config` : le titre est alors résolu de façon tolérante (casse, accents,
    ponctuation, « Vol. », mots entiers, plus longue correspondance).
+   Tout enregistrement remet `albums.yaml` au format canonique (`path:` sur
+   une ligne). Sauvegarde : `curl -fsS
+   http://mcard.local:8088/config/albums.yaml/download -o
+   backups/albums-$(date +%Y%m%d-%H%M).yaml` (`backups/` est ignoré par git).
 6. **Imprimer** le boîtier et assembler ([ASSEMBLY.md](docs/ASSEMBLY.md)).
 
 ## Essayer sans matériel (mode simulé)

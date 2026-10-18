@@ -97,7 +97,7 @@ def search_client(tmp_path):
         config_dir=tmp_path,
         log_file=tmp_path / "mcard.log",
         status_fn=dict,
-        on_albums_saved=store.reload,
+        on_albums_saved=store.reload_and_normalize,
         search_fn=lambda q: search_library(q, library, {"Jean-Michel Jarre"}),
         cards_fn=store.all,
         assign_fn=store.assign,
@@ -141,3 +141,25 @@ def test_assign_rejects_unknown_card_and_bad_path(search_client):
     bad_path = search_client.post("/search/assign", data={"uid": "04AA", "path": "pas du json"})
     assert "error=" in bad_path.headers["Location"]
     assert search_client.store.lookup("04AA").is_todo
+
+
+def test_ui_save_normalizes_albums_format(search_client):
+    content = ('"04AA":\n  artist: Angèle\n  path:\n  - Library\n  - Artists\n'
+               '  - Angèle\n  - Instinct\n'
+               '"04BB":\n  path: ["Library", "Artists", "AC/DC", "Back in Black"]\n')
+    search_client.post("/config/albums.yaml", data={"content": content})
+    text = search_client.store.path.read_text(encoding="utf-8")
+    assert '  path: ["Library", "Artists", "Angèle", "Instinct"]\n  artist: "Angèle"\n' in text
+    assert '  path: ["Library", "Artists", "AC/DC", "Back in Black"]\n' in text
+
+
+def test_config_download_returns_raw_file(client):
+    response = client.get("/config/albums.yaml/download")
+    assert response.status_code == 200
+    assert response.get_data(as_text=True) == '"04A1B2C3":\n  album: "Kind of Blue"\n'
+    assert "attachment" in response.headers["Content-Disposition"]
+
+
+def test_config_download_rejects_other_files(client):
+    assert client.get("/config/mcard.log/download").status_code == 404
+    assert client.get("/config/..%2Fmcard.log/download").status_code == 404

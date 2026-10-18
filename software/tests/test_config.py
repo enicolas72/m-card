@@ -1,6 +1,6 @@
 import yaml
 
-from mcard.config import AlbumStore, AppConfig, DEFAULTS
+from mcard.config import ALBUMS_HEADER, AlbumStore, AppConfig, DEFAULTS
 
 
 def test_defaults_when_no_file(tmp_path):
@@ -63,3 +63,28 @@ def test_reload_picks_up_external_edit(store, albums_file):
     albums_file.write_text(content, encoding="utf-8")
     store.reload()
     assert store.lookup("0FTODO01").album == "Nouveau Disque"
+
+
+def test_saved_format_matches_search_fragment(tmp_path):
+    store = AlbumStore(tmp_path / "albums.yaml")
+    store.assign("042f9b7aaa4881", ["Library", "Artists", "Angèle", "Instinct"], "Angèle")
+    store.add_todo("0412345678")  # UID tout en chiffres : doit rester une chaîne
+    body = (tmp_path / "albums.yaml").read_text(encoding="utf-8").split(ALBUMS_HEADER)[1]
+    assert body == (
+        '\n"0412345678":\n'
+        '  album: "TODO"\n'
+        '"042F9B7AAA4881":\n'
+        '  path: ["Library", "Artists", "Angèle", "Instinct"]\n'
+        '  artist: "Angèle"\n'
+    )
+
+
+def test_saved_file_round_trips_tricky_titles(tmp_path):
+    path = ["Library", "Artists", "AC/DC", 'Live "at" Donington \\ 1991: Vol. 1']
+    store = AlbumStore(tmp_path / "albums.yaml")
+    store.assign("AA01", path, "AC/DC")
+    store.add_todo("0012")
+    store.reload()
+    assert store.lookup("AA01").path == path
+    assert store.lookup("AA01").artist == "AC/DC"
+    assert store.lookup("0012").is_todo

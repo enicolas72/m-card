@@ -1,5 +1,25 @@
 # Journal du projet M-Card
 
+## 2026-10-18 17:09 — Format canonique d'albums.yaml ; téléchargement brut pour sauvegardes
+
+- **Format mixte constaté** (fragment collé `path: [...]` vs liste en bloc
+  et clés triées écrites par `yaml.safe_dump`). `AlbumStore._save_locked`
+  écrit désormais à la main le même format que les fragments de `/search` :
+  UID entre guillemets (un UID tout en chiffres serait relu comme entier,
+  zéros de tête perdus), `path` sur une ligne puis `artist`, chaînes
+  sérialisées en JSON (JSON ⊂ YAML : guillemets, `\`, accents sûrs).
+- L'éditeur `/config/albums.yaml` écrivait le texte tel quel : il appelle
+  maintenant `reload_and_normalize` (recharge + réécriture canonique).
+  Choix assumé : les commentaires utilisateur sont perdus (déjà le cas pour
+  add_todo/assign), l'en-tête d'aide est régénéré.
+- **Sauvegardes** : `GET /config/<nom>/download` renvoie le fichier brut
+  (mêmes restrictions `EDITABLE_FILES`), lien « télécharger » sur la page
+  d'édition. Préféré à un scp (pas de clé SSH nécessaire) et à un parsing
+  du HTML. Pas de tâche planifiée (choix d'Eric) : commande curl documentée
+  dans SETUP/README ; `backups/` ajouté au `.gitignore`.
+
+5 tests ajoutés (73 au total).
+
 ## 2026-10-18 15:05 — Page de recherche d'albums Roon (/search)
 
 Demande d'Eric : identifier les albums par un ID Roon dans `albums.yaml`.

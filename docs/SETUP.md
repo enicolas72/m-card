@@ -59,6 +59,7 @@ Depuis n'importe quel navigateur du réseau local :
 | `http://mcard.local:8088/` | état : morceau en cours, connexion Roon, dernière carte |
 | `http://mcard.local:8088/logs` | journal (lecture seule, téléchargeable) |
 | `http://mcard.local:8088/config` | édition de `albums.yaml` et `mcard.yaml` (YAML validé avant sauvegarde, rechargement à chaud des albums) |
+| `http://mcard.local:8088/config/albums.yaml/download` | fichier brut, pour les sauvegardes : `curl -fsS http://mcard.local:8088/config/albums.yaml/download -o albums-$(date +%Y%m%d-%H%M).yaml` |
 | `http://mcard.local:8088/search` | recherche libre d'albums dans Roon → fragment `path:` exact à copier, ou bouton « Associer à cette carte » (cartes en TODO proposées en premier) |
 
 ## 5. Réglages utiles (`/etc/mcard/mcard.yaml`)

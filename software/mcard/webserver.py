@@ -2,7 +2,8 @@
 
 - /            : état de l'appareil (morceau en cours, Roon, dernière carte)
 - /logs        : consultation du log (lecture seule)
-- /config      : édition des fichiers de configuration (albums.yaml, mcard.yaml)
+- /config      : édition des fichiers de configuration (albums.yaml, mcard.yaml),
+                 /config/<nom>/download pour le fichier brut (sauvegardes)
 - /search      : recherche d'albums dans Roon → fragment `path:` pour albums.yaml,
                  ou association directe à une carte
 - /api/status  : état JSON
@@ -143,10 +144,25 @@ def create_app(
         note = ('<p class="ok">Enregistré.</p>' if saved
                 else f'<p class="err">Erreur : {html.escape(error)}</p>' if error else "")
         body = (f"<h2>{name}</h2>{note}"
+                f'<p><a href="/config/{name}/download">télécharger</a></p>'
                 f'<form method="post" action="/config/{name}">'
                 f'<textarea name="content" spellcheck="false">{html.escape(content)}</textarea>'
                 f'<p><button type="submit">Enregistrer</button></p></form>')
         return PAGE.format(body=body)
+
+    @app.get("/config/<name>/download")
+    def config_download(name):
+        try:
+            path = _check_name(name)
+        except FileNotFoundError:
+            return Response("fichier inconnu", status=404)
+        if not path.exists():
+            return Response("fichier absent", status=404)
+        return Response(
+            path.read_bytes(),
+            mimetype="text/yaml",
+            headers={"Content-Disposition": f"attachment; filename={name}"},
+        )
 
     @app.post("/config/<name>")
     def config_save(name):

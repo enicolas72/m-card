@@ -9,6 +9,7 @@ entier à chaque modification, avec un en-tête explicatif.
 
 from __future__ import annotations
 
+import json
 import logging
 import threading
 from dataclasses import dataclass, field
@@ -185,6 +186,14 @@ class AlbumStore:
                 self._entries[uid] = entry
             log.info("%d albums chargés depuis %s", len(self._entries), self.path)
 
+    def reload_and_normalize(self) -> None:
+        """Recharge puis réécrit le fichier au format canonique (après une
+        édition manuelle via l'interface web). Les commentaires sont perdus,
+        comme lors de tout ajout automatique."""
+        self.reload()
+        with self._lock:
+            self._save_locked()
+
     def lookup(self, uid: str) -> Optional[AlbumEntry]:
         with self._lock:
             return self._entries.get(uid.upper())
@@ -216,19 +225,23 @@ class AlbumStore:
             return dict(self._entries)
 
     def _save_locked(self) -> None:
-        data: dict[str, Any] = {}
+        # Écriture à la main plutôt que yaml.safe_dump : même format que les
+        # fragments de la page /search (chemin sur une ligne, path puis artist),
+        # et UID toujours entre guillemets (un UID tout en chiffres serait
+        # sinon relu comme un entier, zéros de tête perdus).
+        def q(text: str) -> str:
+            return json.dumps(text, ensure_ascii=False)  # JSON ⊂ YAML
+
+        lines: list[str] = []
         for uid, entry in sorted(self._entries.items()):
-            spec: dict[str, Any] = {}
+            lines.append(f"{q(uid)}:")
             if entry.path:
-                spec["path"] = entry.path
+                lines.append(f"  path: [{', '.join(q(p) for p in entry.path)}]")
             else:
-                spec["album"] = entry.album or TODO_ALBUM
+                lines.append(f"  album: {q(entry.album or TODO_ALBUM)}")
             if entry.artist:
-                spec["artist"] = entry.artist
-            data[uid] = spec
-        body = yaml.safe_dump(
-            data, allow_unicode=True, sort_keys=True, default_flow_style=False
-        )
+                lines.append(f"  artist: {q(entry.artist)}")
+        body = "\n".join(lines) + "\n" if lines else ""
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".yaml.tmp")
         with open(tmp, "w", encoding="utf-8") as fh:

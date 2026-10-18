@@ -14,7 +14,7 @@ All software work happens in `software/` with the local venv (`software/.venv`, 
 
 ```bash
 cd software
-./.venv/bin/python -m pytest tests/          # run tests (68, all mocked hardware)
+./.venv/bin/python -m pytest tests/          # run tests (73, all mocked hardware)
 ./.venv/bin/python -m pytest tests/test_controller.py -k cooldown   # single test
 ./.venv/bin/python -m mcard --config <dir> --fake   # run app with simulated hardware
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)
@@ -44,7 +44,7 @@ software/mcard/
   nfc_reader.py   nfcpy loop; connect() blocks while card present (on-connect returns True), USB error backoff
   display.py      Display (4 lines, scrolling ticker thread, accent transliteration for HD44780) over a
                   LcdBackend (CharLcdBackend real / FakeLcdBackend / MemoryLcd in tests)
-  webserver.py    Flask: / status, /logs (RO, tail+download), /config/<name> (RW, YAML-validated,
+  webserver.py    Flask: / status, /logs (RO, tail+download), /config/<name> (RW, YAML-validated, raw GET at /config/<name>/download,
                   hot-reloads albums.yaml), /search (Roon library search → `path:` fragment,
                   POST /search/assign writes it via AlbumStore.assign). Only EDITABLE_FILES reachable.
   app.py          composition root; Controller gets `roon` injected after creation (RoonClient needs the queue)
