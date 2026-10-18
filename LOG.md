@@ -1,5 +1,39 @@
 # Journal du projet M-Card
 
+## 2026-10-18 17:56 — Page de présentation (marketing/)
+
+Pitch : « re-matérialiser la musique dématérialisée avec M-Card et Roon ».
+`marketing/index.html` : **un seul fichier autonome** (3,55 Mo, hors ligne,
+aucune ressource externe), textes en anglais, charte reprise des cartes
+d'Eric (brun espresso du logo « M. », ambre des icônes de façade, bleu LCD).
+
+- **3D temps réel** (three.js, bundlé) : vraies pièces du boîtier exportées
+  en position assemblée (`build/parts.scad` inclut `mcard.scad` avec
+  `part = "none"` → aucune cote dupliquée), + pièces de rendu : module LCD,
+  boutons inox, vis CHC M3 (façade, dosseret, fond) et embase USB-C (corps,
+  réceptacle, vis M2) qui comblent lamages et découpe. Une M-Card glisse
+  dans la fente toutes les 7 s (ou au choix via « Try a card »), le LCD
+  passe par « .. loading » puis affiche l'album. Orbite à la souris,
+  balancement auto, rendu suspendu hors écran, repli photo sans WebGL.
+- **LCD émulé** (canvas) : police 5×7 HD44780, mise en page et défilement
+  identiques à `display.py`. Section « A screen with soul » : simple
+  exemple (boutons interactifs retirés, jugés « too much »).
+- **Console** : captures HTML réelles (mode `--fake`, `albums.yaml` construit
+  via `AlbumStore.assign` pour le format canonique), rendues figées en
+  Shadow DOM, carrousel horizontal État / Albums / Recherche à 3 points.
+  Itérations : onglets inventés (refusés : n'existent pas), puis iframe
+  cliquable (listener parent non fiable selon navigateur), puis carrousel.
+- **Cartes** : découpées de `card-covers/albums*.png` (détection auto de la
+  grille), logo « M. » extrait en PNG transparent. `card-covers/` ignoré.
+- **Bug Safari** : le bandeau animé en CSS (translateX + mask-image) perdait
+  des bandes puis se figeait à côté du contexte WebGL ; ni le retrait du
+  lazy-loading ni celui du masque ne suffisaient → bandeau dessiné en
+  canvas 2D (ombres pré-rendues par carte), validé par Eric sous Safari.
+- Usage vinyle explicité : une M-Card glissée dans la pochette fait du
+  disque lui-même le déclencheur (hero, étape « Drop », encadré dédié).
+- Vérifié par captures Chrome headless (puppeteer, hors dépôt), 1440 et
+  390 px, sans erreur JS ni débordement horizontal.
+
 ## 2026-10-18 17:09 — Format canonique d'albums.yaml ; téléchargement brut pour sauvegardes
 
 - **Format mixte constaté** (fragment collé `path: [...]` vs liste en bloc

@@ -29,6 +29,7 @@ CD/vinyle + carte RFID ──► fente ──► ACR122U ──► Raspberry Pi 
 | [`docs/SETUP.md`](docs/SETUP.md) | carte SD, installation, appairage Roon, dépannage |
 | [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | montage dans le boîtier |
 | [`enclosure/`](enclosure/) | boîtier 3D paramétrique (OpenSCAD) + STL |
+| [`marketing/`](marketing/) | page de présentation autonome ([`index.html`](marketing/index.html), un seul fichier, hors ligne) : rendu 3D temps réel, LCD émulé, captures de la console ; sources et build dans `marketing/build/` |
 
 ## Démarrage rapide
 

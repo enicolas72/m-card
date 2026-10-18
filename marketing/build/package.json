@@ -1,0 +1,12 @@
+{
+  "name": "mcard-marketing-build",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": {
+    "@fontsource/inter": "5.1.0",
+    "@fontsource/space-grotesk": "5.1.0",
+    "esbuild": "0.24.0",
+    "three": "0.169.0"
+  }
+}

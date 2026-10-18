@@ -27,6 +27,8 @@ cd enclosure
 openscad -o stl/shell.stl -D 'part="shell"' mcard.scad   # parts: shell|backrest|backrest_cover|lid|assembly
 ```
 
+Marketing page (`marketing/`): `index.html` is a single self-contained file (everything inlined, works offline) built from `marketing/build/` — `npm install && npm run build`; `./export-stl.sh` re-exports the assembled enclosure parts (`parts.scad` includes `enclosure/mcard.scad` with `part = "none"`). Copy is in English. The card strip is canvas-drawn on purpose (CSS-animated strip + mask lost tiles in Safari next to the WebGL context). `card-covers/` (source artwork, PSD) is git-ignored.
+
 Deployment to the Pi is via `scp` + `sudo bash install.sh` (see `docs/SETUP.md`). Never `pip install` the Pi-only deps (nfcpy, RPLCD, gpiozero, roonapi) on the Mac — all hardware imports are lazy so tests/fake mode run without them; keep it that way when adding code.
 
 ## Architecture

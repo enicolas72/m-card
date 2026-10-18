@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M-Card — Re-materialize your music</title>
+<meta name="description" content="M-Card brings your Roon library back to your shelf: one card per album. Drop it in, it plays.">
+<link rel="icon" href="{{img:logo-m}}">
+<style>{{CSS}}</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="brand" href="#top"><img src="{{img:logo-m}}" alt=""><span>M-Card</span></a>
+  <nav>
+    <a href="#how">How it works</a>
+    <a href="#display">Display</a>
+    <a href="#console">Console</a>
+    <a href="#hardware">Hardware</a>
+  </nav>
+  <a class="btn btn-small" href="https://github.com/enicolas72/m-card">Build yours</a>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="dot"></span> M-Card System · made for Roon</p>
+    <h1><span class="grad">Re&#8209;materialize</span><br>your music.</h1>
+    <p class="lead">Streaming dissolved your albums into a search bar. M-Card puts them
+      back on your shelf: one card per album, or tucked inside the vinyl sleeve or CD case
+      you already own. <strong>Drop it in the slot. Roon plays it.</strong>
+      Instantly, in full fidelity.</p>
+    <div class="cta-row">
+      <a class="btn" href="#how">See how it works</a>
+      <a class="btn btn-ghost" href="https://github.com/enicolas72/m-card">Open source on GitHub →</a>
+    </div>
+    <div class="picker">
+      <span class="picker-label">Try a card</span>
+      <div class="picker-cards" id="picker"></div>
+    </div>
+  </div>
+  <div class="hero-stage">
+    <div class="stage-glow" aria-hidden="true"></div>
+    <div id="device3d" class="device3d" aria-label="Interactive 3D model of the M-Card player"></div>
+    <p class="stage-hint">Real-time 3D · drag to rotate</p>
+  </div>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<section class="marquee" aria-hidden="true">
+  <canvas id="marquee"></canvas>
+</section>
+
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto reveal">
+  <p class="big">You used to <em>own</em> music. You could hold it, flip it over,
+    lend it to a friend. Then it became a stream — infinite, weightless,
+    and strangely <em>forgettable</em>.</p>
+  <p class="antidote">M-Card is the antidote.</p>
+  <div class="stats">
+    <div><b>1</b><span>gesture to play<br>a whole album</span></div>
+    <div><b>0</b><span>apps, phones or<br>screens to unlock</span></div>
+    <div><b>100%</b><span>local — no cloud,<br>no account, no tracking</span></div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section id="how" class="section">
+  <header class="section-head reveal">
+    <p class="kicker">How it works</p>
+    <h2>Tag. Drop. Play.</h2>
+  </header>
+  <div class="steps">
+    <article class="step reveal">
+      <span class="num">01</span>
+      <div class="viz viz-fan" id="vizFan"></div>
+      <h3>Tag</h3>
+      <p>Every album gets its own M-Card: the cover art on top, an NFC chip inside.
+        Print your own, then pair each one from the built-in web console in seconds.</p>
+    </article>
+    <article class="step reveal">
+      <span class="num">02</span>
+      <div class="viz viz-slot"><img id="vizSlotCard" alt=""><span class="slot"></span></div>
+      <h3>Drop</h3>
+      <p>Slide the card into the slot, cover facing out. Or slip it inside a record sleeve
+        and simply stand the vinyl in the slot. The reader in the backrest picks it up
+        the moment it lands.</p>
+    </article>
+    <article class="step reveal">
+      <span class="num">03</span>
+      <div class="viz viz-eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h3>Play</h3>
+      <p>Roon starts the album on your zone: any DAC, any speaker, bit-perfect. The
+        display shows what's playing; three steel buttons take care of the rest.</p>
+    </article>
+  </div>
+  <p class="aside reveal">Put the same card back? Nothing restarts. Pull it out? The music
+    keeps going. M-Card just does what you'd expect.</p>
+</section>
+
+<!-- ============ DISPLAY ============ -->
+<section id="display" class="section split">
+  <div class="split-copy reveal">
+    <p class="kicker">The display</p>
+    <h2>A screen with soul.</h2>
+    <p>A 20×4 backlit character LCD with the same dot-matrix glow as the hi-fi decks you grew up
+      with. Long titles scroll, the playback state sits in the corner, and the backlight
+      dims itself when the room goes quiet.</p>
+  </div>
+  <div class="lcd-unit reveal">
+    <div class="lcd-bezel"><canvas id="lcdBig"></canvas></div>
+  </div>
+</section>
+
+<!-- ============ CONSOLE ============ -->
+<section id="console" class="section">
+  <header class="section-head reveal">
+    <p class="kicker">The console</p>
+    <h2>Runs in any browser.<br>Nothing to install.</h2>
+    <p class="sub">M-Card serves its own web page on your local network: live status, logs,
+      configuration, and a library search that pairs a card to any Roon album in one click.</p>
+  </header>
+  <div class="browser reveal">
+    <div class="browser-bar">
+      <span class="lights"><i></i><i></i><i></i></span>
+      <span class="url" id="consoleUrl">mcard.local:8088/search?q=jarre</span>
+    </div>
+    <div id="consoleSlides" class="console-slides" role="region" aria-label="M-Card web console"></div>
+  </div>
+  <div class="dots reveal" id="consoleDots"></div>
+  <p class="caption reveal">The actual M-Card web interface, as served by the device.</p>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section id="hardware" class="section">
+  <header class="section-head reveal">
+    <p class="kicker">Hardware</p>
+    <h2>Built, not bought.</h2>
+    <p class="sub">Open hardware you can build in a weekend: off-the-shelf parts, no soldering
+      on the reader, and a 3D-printed enclosure that prints without supports.</p>
+  </header>
+  <div class="photos">
+    <figure class="reveal"><img src="{{img:IMG_0931}}" alt="M-Card prototype on a shelf, LCD glowing blue"><figcaption>Prototype 2, at home</figcaption></figure>
+    <figure class="reveal"><img src="{{img:IMG_0930}}" alt="M-Card prototype in front of a vinyl record"><figcaption>M-Card inside the sleeve: stand the record, it plays</figcaption></figure>
+  </div>
+  <div class="vinyl-note reveal">
+    <h3>Your records become the remote.</h3>
+    <p>Slip an M-Card inside a vinyl sleeve or a CD case and the record itself becomes the trigger:
+      stand it in the slot and Roon plays that very album, in full quality, on your system.
+      Your sleeves and your hi-fi, finally working together.</p>
+  </div>
+  <dl class="specs reveal">
+    <div><dt>Brain</dt><dd>Raspberry Pi 3 B+, Wi-Fi</dd></div>
+    <div><dt>Reader</dt><dd>ACS ACR122U NFC, hidden in the backrest</dd></div>
+    <div><dt>Display</dt><dd>20×4 LCD, I²C, auto-dimming backlight</dd></div>
+    <div><dt>Controls</dt><dd>3 stainless push buttons: previous, play/pause, next</dd></div>
+    <div><dt>Power</dt><dd>Panel-mount USB-C</dd></div>
+    <div><dt>Enclosure</dt><dd>6 printed parts, PLA/PETG, M3 heat-set inserts</dd></div>
+    <div><dt>Software</dt><dd>Python, open source, fully tested</dd></div>
+    <div><dt>Music</dt><dd>Roon extension: any zone, any endpoint</dd></div>
+  </dl>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section features">
+  <article class="feat reveal"><h3>Self-healing</h3><p>Roon restarts, Wi-Fi drops: M-Card reconnects on its own. No reboot, ever.</p></article>
+  <article class="feat reveal"><h3>Forgiving</h3><p>Album titles are matched despite case, accents, punctuation or a stray “Vol.”.</p></article>
+  <article class="feat reveal"><h3>Private by design</h3><p>It talks to your Roon server and nothing else. No cloud, no telemetry.</p></article>
+  <article class="feat reveal"><h3>Zero-friction pairing</h3><p>Unknown card? It's queued automatically, then paired from the console with one click.</p></article>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section class="final reveal">
+  <img class="final-logo" src="{{img:logo-m}}" alt="">
+  <h2>Your shelf is back.</h2>
+  <p>Give your digital library the physical presence it deserves.</p>
+  <a class="btn" href="https://github.com/enicolas72/m-card">Build your M-Card →</a>
+</section>
+
+</main>
+
+<footer class="footer">
+  <img src="{{img:logo-full}}" alt="M-Card System">
+  <p>M-Card is an independent, open-source DIY project. Roon is a trademark of Roon Labs LLC;
+    M-Card is not affiliated with or endorsed by Roon Labs. Album artwork © their respective owners.</p>
+</footer>
+
+<script>window.__ASSETS = {{ASSETS_JSON}};</script>
+<script>{{JS}}</script>
+</body>
+</html>
