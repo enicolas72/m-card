@@ -1,5 +1,17 @@
 # M-Card project log
 
+## 2026-10-23 — Prototype 3 opened in `proto3/`
+
+- `proto3/` created as a copy of `proto2/` (git-tracked files only: no
+  venv, caches or `.DS_Store`), since proto 3 is an evolution, not a
+  rewrite. Plain copy, not `git mv`: proto 2 stays intact as the archive of
+  the device in use.
+- Only self-reference fixed: the SETUP.md `rsync` line now copies
+  `proto3/software/`. Everything else is still proto 2 content, to evolve.
+- Fresh venv in `proto3/software/.venv` (flask, pyyaml, pytest): 79 tests pass.
+- CLAUDE.md commands and architecture now point to `proto3/` (active work);
+  README mentions proto 3 in progress, its table still describes proto 2.
+
 ## 2026-10-23 — Prototype 2 archived in `proto2/`, prototype 3 starts
 
 - `software/`, `enclosure/` and `docs/` moved with `git mv` into `proto2/`

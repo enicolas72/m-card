@@ -1,0 +1,52 @@
+# M-Card — general settings
+# Copied to /etc/mcard/mcard.yaml (done by install.sh)
+
+roon:
+  # Roon server address. Leave empty for automatic discovery on the
+  # local network (recommended).
+  host: ""
+  port: 9330
+  # Exact name of the Roon zone to control (Roon -> bottom right).
+  # Leave empty to use the first available zone.
+  zone_name: ""
+  token_file: /var/lib/mcard/roon_token.txt
+
+behavior:
+  # What to do when the CD/vinyl is removed:
+  #   none  = the album keeps playing, buttons stay active (default)
+  #   pause = pause / stop = stop
+  on_card_removed: none
+  # Ignore a re-detection of the same card for N seconds
+  redetect_cooldown_s: 3.0
+  # Card considered removed after N seconds without an answer (smooths the
+  # ACR122U's flaky presence check on some Mifare Ultralight tags)
+  removal_grace_s: 1.0
+
+lcd:
+  # I2C address of the PCF8574 backpack (usually 0x27, 0x3F for some;
+  # check with: i2cdetect -y 1)
+  i2c_address: 0x27
+  i2c_port: 1
+  cols: 20
+  rows: 4
+  # Backlight sleeps after N seconds without interaction
+  # (card placed/removed, button); 0 = always on
+  backlight_timeout_s: 120
+
+buttons:
+  # BCM numbering; each button connects the pin to GND (internal pull-up)
+  prev: 5
+  playpause: 6
+  next: 13
+
+web:
+  host: 0.0.0.0   # reachable on the LAN: http://mcard.local:8088
+  port: 8088
+  # Web console language: en (English) or fr (French). Restart to apply.
+  language: en
+
+log:
+  file: /var/log/mcard/mcard.log
+  level: INFO      # DEBUG for details
+  max_bytes: 1000000
+  backup_count: 5

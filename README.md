@@ -12,7 +12,8 @@ three push buttons, and a 3D-printed enclosure.
 ## Repository
 
 The current device is **prototype 2**, archived as a whole in [`proto2/`](proto2/)
-(working and in daily use). Prototype 3 is being designed.
+(working and in daily use; the paths below). **Prototype 3** is in progress in
+[`proto3/`](proto3/), evolving from a copy of proto 2.
 
 | Path | Contents |
 |---|---|
