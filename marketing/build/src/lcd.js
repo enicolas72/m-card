@@ -1,5 +1,5 @@
 // LCD 2004A emulation (HD44780, 20×4, 5×8 cells): same layout and same
-// scrolling as software/mcard/display.py.
+// scrolling as proto2/software/mcard/display.py.
 
 // Classic 5×7 font (columns, bit 0 = top row), ASCII 0x20–0x7E.
 const FONT = [

@@ -1,5 +1,5 @@
 // Real-time 3D rendering of the device: STL parts exported from
-// enclosure/mcard.scad (assembled position, see build/parts.scad), LCD
+// proto2/enclosure/mcard.scad (assembled position, see build/parts.scad), LCD
 // emulated as a texture, M-Card sliding into the slot.
 import * as THREE from 'three';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';

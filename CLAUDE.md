@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). `versions/` is **local only** (git-ignored, the owner's private material): original spec `versions/idea/PROJECT.md` (French, archival, fully realized), sketches, and prototype photos `versions/proto2/` (lightweight copies used by the presentation page live in `marketing/build/img/`). Root README.md is a short pitch + link to the GitHub Pages presentation https://enicolas72.github.io/m-card/marketing/ — don't duplicate the page's content there. Licensed MIT (`LICENSE`); album artwork in `marketing/build/cards/` is excluded.
+**M-Card** is a DIY hardware device: place a CD case or vinyl sleeve fitted with an RFID card on it, and the matching album plays on **Roon** (server runs on the user's Mac). `versions/` is **local only** (git-ignored, the owner's private material): original spec `versions/idea/PROJECT.md` (French, archival, fully realized), sketches, and prototype photos `versions/proto2/` (lightweight copies used by the presentation page live in `marketing/build/img/`). **Prototype 2 (the working, in-use device) is archived as a whole in `proto2/`** (`proto2/software`, `proto2/enclosure`, `proto2/docs`); prototype 3 is starting (2026-10-23) — create its work alongside, don't modify `proto2/` unless fixing the deployed device. `marketing/` stays at the root (public Pages URL) and presents proto 2. Root README.md is a short pitch + link to the GitHub Pages presentation https://enicolas72.github.io/m-card/marketing/ — don't duplicate the page's content there. Licensed MIT (`LICENSE`); album artwork in `marketing/build/cards/` is excluded.
 
 Hardware: Raspberry Pi 3 B+ (Wi-Fi), ACS ACR122U NFC reader kept on USB (no soldering), LCD 2004A with PCF8574 I2C backpack, 3 GPIO buttons prev/playpause/next (BCM 5/6/13; legacy 4-button names play/pause still map), panel-mount USB-C power. No network access besides local Roon; no auth on the web UI by design.
 
@@ -14,33 +14,33 @@ Hardware: Raspberry Pi 3 B+ (Wi-Fi), ACS ACR122U NFC reader kept on USB (no sold
 
 ## Commands
 
-All software work happens in `software/` with the local venv (`software/.venv`, plain python3 + flask/pyyaml/pytest — no Pi hardware libs on the Mac):
+All proto 2 software work happens in `proto2/software/` with the local venv (`proto2/software/.venv`, plain python3 + flask/pyyaml/pytest — no Pi hardware libs on the Mac):
 
 ```bash
-cd software
+cd proto2/software
 ./.venv/bin/python -m pytest tests/          # run tests (79, all mocked hardware)
 ./.venv/bin/python -m pytest tests/test_controller.py -k cooldown   # single test
 ./.venv/bin/python -m mcard --config <dir> --fake   # run app with simulated hardware
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)
 ```
 
-3D enclosure (`enclosure/`): OpenSCAD snapshot is installed at `/opt/homebrew/bin/openscad` (the 2021.01 x86_64 cask hangs on this arm64 Mac — don't use it).
+3D enclosure (`proto2/enclosure/`): OpenSCAD snapshot is installed at `/opt/homebrew/bin/openscad` (the 2021.01 x86_64 cask hangs on this arm64 Mac — don't use it).
 
 ```bash
-cd enclosure
+cd proto2/enclosure
 openscad -o stl/shell.stl -D 'part="shell"' mcard.scad   # parts: shell|backrest|backrest_cover|lid|assembly
 ```
 
-Marketing page (`marketing/`): `index.html` is a single self-contained file (everything inlined, works offline) built from `marketing/build/` — `npm install && npm run build`; `./export-stl.sh` re-exports the assembled enclosure parts (`parts.scad` includes `enclosure/mcard.scad` with `part = "none"`). Copy is in English. The card strip is canvas-drawn on purpose (CSS-animated strip + mask lost tiles in Safari next to the WebGL context). `card-covers/` (source artwork, PSD) is git-ignored.
+Marketing page (`marketing/`): `index.html` is a single self-contained file (everything inlined, works offline) built from `marketing/build/` — `npm install && npm run build`; `./export-stl.sh` re-exports the assembled enclosure parts (`parts.scad` includes `proto2/enclosure/mcard.scad` with `part = "none"`). Copy is in English. The card strip is canvas-drawn on purpose (CSS-animated strip + mask lost tiles in Safari next to the WebGL context). `card-covers/` (source artwork, PSD) is git-ignored.
 
-Deployment to the Pi is via `scp` + `sudo bash install.sh` (see `docs/SETUP.md`). Never `pip install` the Pi-only deps (nfcpy, RPLCD, gpiozero, roonapi) on the Mac — all hardware imports are lazy so tests/fake mode run without them; keep it that way when adding code.
+Deployment to the Pi is via `scp` + `sudo bash install.sh` (see `proto2/docs/SETUP.md`). Never `pip install` the Pi-only deps (nfcpy, RPLCD, gpiozero, roonapi) on the Mac — all hardware imports are lazy so tests/fake mode run without them; keep it that way when adding code.
 
 ## Architecture
 
 Single event queue, one central controller, one thread per peripheral. Every hardware component has a fake twin in `mcard/fakes.py`; `app.py` picks real vs fake at wiring time (`--fake`).
 
 ```
-software/mcard/
+proto2/software/mcard/
   events.py       dataclass events: CardPresented/CardRemoved/ButtonPressed/NowPlaying/RoonConnection/Shutdown
   controller.py   consumes the queue; business rules: known card → play, unknown → auto-add TODO,
                   card removed → none (default)/pause/stop, buttons → transport. Holds `status` dict for the web UI.

@@ -10,11 +10,11 @@ console captures.
 ## Contents
 
 - **Real-time 3D rendering** of the device: the actual enclosure parts
-  (`enclosure/mcard.scad`, exported in assembled position) plus render-only
+  (`proto2/enclosure/mcard.scad`, exported in assembled position) plus render-only
   parts (LCD module, buttons, screws, USB-C socket), with the LCD emulated
   and an M-Card sliding into the slot.
 - **20×4 LCD emulation**: HD44780 font, same layout and scrolling as
-  `software/mcard/display.py`.
+  `proto2/software/mcard/display.py`.
 - **Web console**: real HTML captures of the interface (`--fake` mode), shown
   frozen in a three-view carousel.
 - Cards cut from `card-covers/` and prototype photos from `versions/proto2/`

@@ -11,26 +11,29 @@ three push buttons, and a 3D-printed enclosure.
 
 ## Repository
 
+The current device is **prototype 2**, archived as a whole in [`proto2/`](proto2/)
+(working and in daily use). Prototype 3 is being designed.
+
 | Path | Contents |
 |---|---|
-| [`software/`](software/) | Python application (`mcard/`), sample configs, `install.sh`, systemd service, tests |
-| [`docs/BOM.md`](docs/BOM.md) | bill of materials, no custom PCB |
-| [`docs/WIRING.md`](docs/WIRING.md) | full wiring + [SVG diagram](docs/wiring-diagram.svg) |
-| [`docs/SETUP.md`](docs/SETUP.md) | SD card, install, Roon pairing, web console, troubleshooting |
-| [`docs/ASSEMBLY.md`](docs/ASSEMBLY.md) | assembly into the enclosure |
-| [`enclosure/`](enclosure/) | parametric 3D enclosure (OpenSCAD) + print-ready STLs |
+| [`proto2/software/`](proto2/software/) | Python application (`mcard/`), sample configs, `install.sh`, systemd service, tests |
+| [`proto2/docs/BOM.md`](proto2/docs/BOM.md) | bill of materials, no custom PCB |
+| [`proto2/docs/WIRING.md`](proto2/docs/WIRING.md) | full wiring + [SVG diagram](proto2/docs/wiring-diagram.svg) |
+| [`proto2/docs/SETUP.md`](proto2/docs/SETUP.md) | SD card, install, Roon pairing, web console, troubleshooting |
+| [`proto2/docs/ASSEMBLY.md`](proto2/docs/ASSEMBLY.md) | assembly into the enclosure |
+| [`proto2/enclosure/`](proto2/enclosure/) | parametric 3D enclosure (OpenSCAD) + print-ready STLs |
 | [`marketing/`](marketing/) | the presentation page: one self-contained offline HTML file, sources in `marketing/build/` |
 
 ## Build one
 
-1. **Order** the few parts listed in the [BOM](docs/BOM.md).
-2. **Wire** the LCD and buttons ([WIRING.md](docs/WIRING.md)); plug the ACR122U into USB.
-3. **Install** on the Pi ([SETUP.md](docs/SETUP.md)): `sudo bash install.sh`.
+1. **Order** the few parts listed in the [BOM](proto2/docs/BOM.md).
+2. **Wire** the LCD and buttons ([WIRING.md](proto2/docs/WIRING.md)); plug the ACR122U into USB.
+3. **Install** on the Pi ([SETUP.md](proto2/docs/SETUP.md)): `sudo bash install.sh`.
 4. **Enable** the M-Card extension in Roon → Settings → Extensions.
 5. **Pair cards**: an unknown card shows up as `TODO` in `albums.yaml`. Open
    `http://mcard.local:8088/search`, find the album, and click *Assign to this card*.
    This writes an exact Roon path, e.g. `path: ["Library", "Artists", "<artist>", "<album>"]`.
-6. **Print** the enclosure and assemble it ([ASSEMBLY.md](docs/ASSEMBLY.md)).
+6. **Print** the enclosure and assemble it ([ASSEMBLY.md](proto2/docs/ASSEMBLY.md)).
 
 The web console speaks English or French (`web.language: en | fr` in `mcard.yaml`).
 
@@ -43,7 +46,7 @@ curl -fsS http://mcard.local:8088/config/albums.yaml/download -o backups/albums-
 ## Try it without hardware
 
 ```bash
-cd software && python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml pytest
+cd proto2/software && python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml pytest
 ./.venv/bin/python -m mcard --config <config-dir> --fake
 ./.venv/bin/python -m pytest tests/
 ```

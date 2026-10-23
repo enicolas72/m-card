@@ -17,8 +17,8 @@
 ## 2. Install M-Card
 
 ```bash
-# from the Mac, copy the software/ folder to the Pi:
-rsync -a --exclude .venv --exclude __pycache__ software/ pi@mcard.local:mcard-software/
+# from the Mac (repo root), copy the proto2/software/ folder to the Pi:
+rsync -a --exclude .venv --exclude __pycache__ proto2/software/ pi@mcard.local:mcard-software/
 
 # then on the Pi:
 ssh pi@mcard.local

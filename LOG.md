@@ -1,5 +1,21 @@
 # M-Card project log
 
+## 2026-10-23 — Prototype 2 archived in `proto2/`, prototype 3 starts
+
+- `software/`, `enclosure/` and `docs/` moved with `git mv` into `proto2/`
+  (history follows the renames). Proto 2 is the working, in-use device; it
+  stays deployable from `proto2/software/` (SETUP.md rsync line updated).
+- `marketing/` stays at the root: the public Pages URL
+  (`/m-card/marketing/`) must not break, and the page presents proto 2.
+  `marketing/build/parts.scad` now includes `../../proto2/enclosure/mcard.scad`
+  (OpenSCAD export checked); source comments and marketing README updated.
+- README links and CLAUDE.md commands point to `proto2/`. Root keeps the
+  project-wide files (README, LOG, CLAUDE.md, LICENSE). 79 tests pass from
+  the new location (the local venv moved with the folder).
+- License question settled: stays MIT. A non-commercial license
+  (PolyForm NC / CC BY-NC-SA) was considered and dropped: the idea itself
+  can't be protected and the device is quick to rebuild independently.
+
 ## 2026-10-18 19:02 — Web console language setting, link style, unknown-key warnings
 
 - **`web.language: en | fr`** (default `en`). Strings stay English in the

@@ -2,7 +2,7 @@
 // marketing page's 3D rendering. `include` gives access to every dimension;
 // `part = "none"` (the last assignment wins in OpenSCAD) disables the part
 // selector of mcard.scad.
-include <../../enclosure/mcard.scad>
+include <../../proto2/enclosure/mcard.scad>
 part = "none";
 
 piece = "shell";
