@@ -12,10 +12,57 @@ from . import __version__
 from .config import AlbumStore, AppConfig
 from .controller import Controller
 from .display import Display
+from .oled import OledDisplay
 from .logging_setup import setup_logging
 from .webserver import create_app, start_in_thread
 
 log = logging.getLogger(__name__)
+
+
+def make_display(config: AppConfig, fake: bool):
+    """OLED (proto 3) or LCD (proto 2) per `display.type`; the real panel
+    falls back to its fake when unavailable, so the device keeps working."""
+    kind = config.get("display", "type", default="oled")
+    timeout = config.get("display", "sleep_timeout_s", default=120)
+    if kind not in ("oled", "lcd"):
+        log.error("Unknown display.type %r, using oled", kind)
+        kind = "oled"
+
+    if kind == "lcd":
+        from .fakes import FakeLcdBackend
+
+        backend = FakeLcdBackend()
+        if not fake:
+            from .display import CharLcdBackend
+
+            try:
+                backend = CharLcdBackend(
+                    i2c_address=config.get("lcd", "i2c_address", default=0x27),
+                    i2c_port=config.get("lcd", "i2c_port", default=1),
+                    cols=config.get("lcd", "cols", default=20),
+                    rows=config.get("lcd", "rows", default=4),
+                )
+            except Exception as exc:
+                log.error("LCD unavailable (%s) — continuing without a display", exc)
+        return Display(backend, backlight_timeout_s=timeout)
+
+    from .fakes import FakeOledBackend
+
+    oled = config.get("oled", default={})
+    backend = FakeOledBackend()
+    if not fake:
+        from .oled import LumaOledBackend
+
+        try:
+            backend = LumaOledBackend(
+                spi_port=oled.get("spi_port", 0), spi_device=oled.get("spi_device", 0),
+                gpio_dc=oled.get("gpio_dc", 24), gpio_rst=oled.get("gpio_rst", 25),
+                rotate=oled.get("rotate", 0), contrast=oled.get("contrast", 180),
+            )
+        except Exception as exc:
+            log.error("OLED unavailable (%s) — continuing without a display", exc)
+    return OledDisplay(backend, sleep_timeout_s=timeout, fps=oled.get("fps", 20),
+                       font_path=oled.get("font", ""))
 
 
 def run(config_dir: Path, fake: bool = False) -> int:
@@ -33,36 +80,20 @@ def run(config_dir: Path, fake: bool = False) -> int:
     albums = AlbumStore(config_dir / "albums.yaml")
 
     # --- real or simulated hardware --------------------------------------
-    backlight_timeout = config.get("lcd", "backlight_timeout_s", default=120)
+    display = make_display(config, fake)
+    controller = Controller(config, albums, display)
 
     if fake:
-        from .fakes import FakeLcdBackend, FakeNfcReader, FakeRoonClient
+        from .fakes import FakeNfcReader, FakeRoonClient
 
-        display = Display(FakeLcdBackend(), backlight_timeout_s=backlight_timeout)
-        controller = Controller(config, albums, display)
         roon = FakeRoonClient(controller.queue)
         nfc = FakeNfcReader(controller.queue)
         buttons = None
     else:
         from .buttons import Buttons
-        from .display import CharLcdBackend
         from .nfc_reader import NfcReader
         from .roon_client import RoonClient
 
-        try:
-            backend = CharLcdBackend(
-                i2c_address=config.get("lcd", "i2c_address", default=0x27),
-                i2c_port=config.get("lcd", "i2c_port", default=1),
-                cols=config.get("lcd", "cols", default=20),
-                rows=config.get("lcd", "rows", default=4),
-            )
-        except Exception as exc:
-            log.error("LCD unavailable (%s) — continuing without a display", exc)
-            from .fakes import FakeLcdBackend
-
-            backend = FakeLcdBackend()
-        display = Display(backend, backlight_timeout_s=backlight_timeout)
-        controller = Controller(config, albums, display)
         roon = RoonClient(
             controller.queue,
             host=config.get("roon", "host", default=""),
@@ -73,6 +104,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
         )
         nfc = NfcReader(
             controller.queue,
+            device=config.get("nfc", "device", default="tty:AMA0:pn532"),
             removal_grace_s=config.get("behavior", "removal_grace_s", default=1.0),
         )
         buttons = Buttons(controller.queue, config.get("buttons", default={}))
@@ -90,6 +122,7 @@ def run(config_dir: Path, fake: bool = False) -> int:
         cards_fn=albums.all,
         assign_fn=albums.assign,
         language=config.get("web", "language", default="en"),
+        display_png_fn=getattr(display, "snapshot_png", None),
     )
     start_in_thread(
         web_app,

@@ -1,5 +1,39 @@
 # M-Card project log
 
+## 2026-10-25 18:05 — Proto 3 software: 256×64 OLED, PN532 over UART (validated), v0.2.0
+
+- Parts chosen and ordered: Audiophonics 3.12" 256×64 white OLED (SSD1322,
+  4-wire SPI, ref. 14604) and a PN532 NFC V3 module. Larger 5.5" SSD1322
+  panels kept as a later option (same software); colour TFTs set aside
+  (DPI bus or USB-only). All documented in the new `proto3/HOWTO.md`
+  (parts, wiring, install, migration, bring-up, troubleshooting).
+- `mcard/oled.py`: `OledDisplay` draws 256×64 Pillow frames over an
+  `OledBackend` (luma.oled, lazy import; fake prints a text box). Now
+  playing = state icon + artist, large track title, album; pixel scrolling
+  (2 s hold, 30 px/s); burn-in protection: sleep after
+  `display.sleep_timeout_s`, 1-px shift every 5 min, contrast 180.
+  Shared screens moved into `ScreenMessages` (display.py) so LCD and OLED
+  show the same messages. Inter latin subset bundled (OFL): Pillow's
+  default font has no accents.
+- `make_display()` picks `display.type: oled | lcd`; `nfc.device` defaults
+  to `tty:AMA0:pn532` (`usb` = ACR122U). `/display.png` serves a live OLED
+  preview on the status page, also in `--fake` mode.
+- `install.sh`: SPI on, PL011 UART freed (serial console off,
+  `dtoverlay=disable-bt`, hciuart off), spi/dialout groups; reboot needed.
+  Requirements: luma.oled, `luma.core[gpio,spi]` (pulls spidev and
+  rpi-lgpio), pillow, pyserial. Library sources were read before writing
+  the HOWTO commands (`python -m nfc --device` does not exist).
+- PN532 wiring diagram `proto3/docs/pn532-wiring.svg`: 4-pin header
+  (I2C/HSU shared, SDA = TXD, SCL = RXD), crossed to pins 10/8, 3.3 V.
+- **Hardware validation (PN532)** on a second Pi 3 (`mcard2`): reader
+  answers (` on /dev/ttyAMA0`), cards play on Roon. The only failure was
+  the module's mode switches not on 0-0 (TimeoutError, no byte back); the
+  mode is read at power-on. HOWTO updated with the real output and cause.
+- Version 0.2.0 for proto 3: Roon lists "M-Card 0.1" (proto 2) and
+  "M-Card 0.2" separately despite the shared extension_id.
+- 89 tests pass (10 new: OLED layouts, scrolling, sleep, shift, preview).
+  OLED not received yet: untested on hardware.
+
 ## 2026-10-23 — Prototype 3 opened in `proto3/`
 
 - `proto3/` created as a copy of `proto2/` (git-tracked files only: no

@@ -37,17 +37,35 @@ DEFAULTS: dict[str, Any] = {
         # Ignore a re-detection of the same card for N seconds
         "redetect_cooldown_s": 3.0,
         # Card considered removed after N seconds without an answer (smooths
-        # the ACR122U's flaky presence check on some tags)
+        # the reader's flaky presence check on some tags)
         "removal_grace_s": 1.0,
+    },
+    "nfc": {
+        # nfcpy device path: PN532 module on the Pi UART (proto 3), or
+        # "usb" for the ACR122U USB reader (proto 2)
+        "device": "tty:AMA0:pn532",
+    },
+    "display": {
+        "type": "oled",            # oled (SSD1322 256x64, SPI) | lcd (2004A, I2C)
+        # Screen sleeps after N seconds without interaction
+        # (card placed/removed, button); 0 = always on
+        "sleep_timeout_s": 120,
+    },
+    "oled": {
+        "spi_port": 0,
+        "spi_device": 0,           # CE0 (GPIO 8)
+        "gpio_dc": 24,             # BCM numbering
+        "gpio_rst": 25,
+        "rotate": 0,               # 0 | 2 (180°, panel mounted upside down)
+        "contrast": 180,           # 0-255; lower = longer panel life
+        "fps": 20,                 # scrolling refresh rate
+        "font": "",                # TrueType file; empty = font bundled with Pillow
     },
     "lcd": {
         "i2c_address": 0x27,       # PCF8574 "MH": 0x27 by default (0x3F if A0-A2 bridged)
         "i2c_port": 1,
         "cols": 20,
         "rows": 4,
-        # Backlight sleeps after N seconds without interaction
-        # (card placed/removed, button); 0 = always on
-        "backlight_timeout_s": 120,
     },
     "buttons": {
         # BCM numbering. Each button connects the GPIO pin to GND.

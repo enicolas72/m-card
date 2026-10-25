@@ -71,8 +71,11 @@ From any browser on the local network:
 - `behavior.on_card_removed`: `none` (default: the album keeps playing,
   buttons stay active), `pause` or `stop`.
 - `lcd.i2c_address`: `0x27` by default; check with `i2cdetect -y 1`.
-- `lcd.backlight_timeout_s`: backlight sleeps after N s without interaction
+- `display.type`: `oled` (proto 3, SSD1322 on SPI) or `lcd` (proto 2, 2004A on I2C).
+- `display.sleep_timeout_s`: the screen sleeps after N s without interaction
   (default 120; 0 = always on). Any card or button wakes it up.
+- `nfc.device`: `tty:AMA0:pn532` (proto 3, PN532 on the UART) or `usb` (ACR122U).
+- See [`../HOWTO.md`](../HOWTO.md) for the proto 3 OLED and PN532 setup.
 - `web.language`: web console language, `en` (default) or `fr`.
 - After a change: `sudo systemctl restart mcard`.
 
@@ -82,7 +85,7 @@ On the Mac, with no hardware at all:
 
 ```bash
 cd software
-python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml
+python3 -m venv .venv && ./.venv/bin/pip install flask pyyaml pillow
 mkdir -p /tmp/mcard && cp config/*.example /tmp/mcard/
 mv /tmp/mcard/mcard.yaml.example /tmp/mcard/mcard.yaml
 mv /tmp/mcard/albums.yaml.example /tmp/mcard/albums.yaml
@@ -91,7 +94,8 @@ mv /tmp/mcard/albums.yaml.example /tmp/mcard/albums.yaml
 ```
 
 Type a UID (e.g. `04A1B2C3`) + Enter to "place a card", Enter alone to remove
-it. The LCD is drawn in the terminal and Roon is simulated.
+it. The screen text is printed in the terminal, the OLED picture is shown live
+on the status page (`http://localhost:8088/`), and Roon is simulated.
 
 ## 7. Troubleshooting
 

@@ -13,7 +13,9 @@ three push buttons, and a 3D-printed enclosure.
 
 The current device is **prototype 2**, archived as a whole in [`proto2/`](proto2/)
 (working and in daily use; the paths below). **Prototype 3** is in progress in
-[`proto3/`](proto3/), evolving from a copy of proto 2.
+[`proto3/`](proto3/), evolving from a copy of proto 2: white 256×64 OLED and a
+compact PN532 reader (validated on a second Pi; OLED pending), see
+[`proto3/HOWTO.md`](proto3/HOWTO.md).
 
 | Path | Contents |
 |---|---|
@@ -75,3 +77,4 @@ Independent DIY project, not affiliated with or endorsed by Roon Labs. Roon is a
 trademark of Roon Labs LLC. Album artwork shown on the presentation page (and in
 `marketing/build/cards/`) belongs to its respective owners and is not covered by
 the MIT License.
+The bundled Inter font (`proto3/software/mcard/fonts/`) is under the SIL Open Font License.

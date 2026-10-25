@@ -207,3 +207,21 @@ def test_unknown_language_falls_back_to_english(tmp_path):
 def test_every_link_uses_the_console_link_color(client):
     page = client.get("/config").get_data(as_text=True)
     assert " a { color: #7ab8ff; }" in page
+
+
+def test_display_preview(tmp_path):
+    from mcard.webserver import create_app
+
+    log_file = tmp_path / "mcard.log"
+    plain = create_app(tmp_path, log_file, status_fn=dict, on_albums_saved=lambda: None)
+    client = plain.test_client()
+    assert client.get("/display.png").status_code == 404
+    assert b'id="screen"' not in client.get("/").data
+
+    with_screen = create_app(tmp_path, log_file, status_fn=dict, on_albums_saved=lambda: None,
+                             display_png_fn=lambda: b"\x89PNG fake")
+    client = with_screen.test_client()
+    resp = client.get("/display.png")
+    assert resp.status_code == 200 and resp.mimetype == "image/png"
+    assert resp.data == b"\x89PNG fake"
+    assert b'id="screen"' in client.get("/").data

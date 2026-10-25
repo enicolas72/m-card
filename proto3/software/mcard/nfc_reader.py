@@ -1,20 +1,23 @@
-"""Reads RFID cards through the ACR122U (USB, nfcpy driver).
+"""Reads RFID cards through nfcpy: PN532 module on the Pi UART
+(`tty:AMA0:pn532`, proto 3) or ACR122U USB reader (`usb`, proto 2) —
+`nfc.device` in mcard.yaml. Both are built around the same PN532 chip.
 
 A thread watches the reader continuously:
 - card placed   -> CardPresented(uid) on the event queue
 - card removed  -> CardRemoved(uid)
 
-Important quirk: with the ACR122U, nfcpy's presence check fails on some
-tags (Mifare Ultralight in particular) and connect() returns right away
-while the card is still there. This is smoothed with a grace period: a card
-is only "removed" if it stays invisible for `removal_grace_s`, and
-re-detections of the same card are silent.
+Important quirk: nfcpy's presence check fails on some tags (Mifare
+Ultralight in particular, seen with the ACR122U) and connect() returns
+right away while the card is still there. This is smoothed with a grace
+period: a card is only "removed" if it stays invisible for
+`removal_grace_s`, and re-detections of the same card are silent.
 
-The thread survives USB unplugs/errors (reopens with backoff).
+The thread survives reader unplugs/errors (reopens with backoff).
 
-System prerequisites (see docs/SETUP.md): blacklist the pn533_usb/pn533/nfc
-kernel modules that grab the reader, and a udev rule for access without
-root.
+System prerequisites (see proto3/HOWTO.md): PN532 — the Pi's PL011 UART
+freed from Bluetooth and the serial console; ACR122U — blacklist the
+pn533_usb/pn533/nfc kernel modules that grab the reader, and a udev rule
+for access without root.
 """
 
 from __future__ import annotations
@@ -32,7 +35,7 @@ POLL_WINDOW_S = 0.3  # length of a detection cycle when no card is present
 
 
 class NfcReader:
-    def __init__(self, event_queue: "queue.Queue", device: str = "usb",
+    def __init__(self, event_queue: "queue.Queue", device: str = "tty:AMA0:pn532",
                  removal_grace_s: float = 1.0):
         self._queue = event_queue
         self._device = device

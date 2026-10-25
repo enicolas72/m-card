@@ -2,6 +2,8 @@
 Raspberry Pi (`--fake` mode, usable on Mac/PC).
 
 - FakeLcdBackend  : prints the 4 LCD lines in the terminal
+- FakeOledBackend : prints the OLED text in the terminal (the picture
+                    itself is shown live at /display.png in the web console)
 - FakeNfcReader   : type a UID + Enter to "place" a card,
                     Enter alone to "remove" it
 - FakeRoonClient  : logs the commands and simulates a track playing
@@ -17,6 +19,7 @@ import threading
 from .config import AlbumEntry
 from .roon_client import search_library
 from .display import LcdBackend
+from .oled import OledBackend
 from .events import CardPresented, CardRemoved, NowPlaying, RoonConnection, Shutdown
 
 log = logging.getLogger(__name__)
@@ -38,6 +41,23 @@ class FakeLcdBackend(LcdBackend):
 
     def set_backlight(self, on: bool) -> None:
         print(f"[LCD] backlight {'ON' if on else 'OFF (sleep)'}")
+
+
+class FakeOledBackend(OledBackend):
+    def __init__(self):
+        self.frames = 0
+
+    def show(self, image) -> None:
+        self.frames += 1
+
+    def describe(self, lines: list[str]) -> None:
+        width = 32
+        border = "+" + "-" * width + "+"
+        print("\n".join(["[OLED]", border] +
+                        [f"|{line.ljust(width)[:width]}|" for line in lines] + [border]))
+
+    def set_power(self, on: bool) -> None:
+        print(f"[OLED] {'ON' if on else 'OFF (sleep)'}")
 
 
 class FakeNfcReader:

@@ -7,6 +7,7 @@
 - /search      : Roon album search → `path:` snippet for albums.yaml,
                  or direct assignment to a card
 - /api/status  : JSON status
+- /display.png : live picture of the OLED screen (preview, also in --fake mode)
 
 No authentication: the device is only reachable on the LAN
 (no Internet connection, as per the original spec).
@@ -71,6 +72,7 @@ TRANSLATIONS = {
         "file missing": "fichier absent",
         "log missing": "log absent",
         "(log file missing)": "(fichier de log absent)",
+        "no graphic display": "pas d'écran graphique",
     },
 }
 
@@ -98,6 +100,8 @@ PAGE = """<!doctype html>
  code {{ font-size: .75rem; word-break: break-all; }}
  td form {{ display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .4rem; }}
  td form button {{ padding: .3rem .8rem; }}
+ .screen {{ width: 100%; max-width: 512px; image-rendering: pixelated; background: #000;
+           border: 6px solid #000; border-radius: 4px; outline: 1px solid #2a3038; }}
 </style></head><body>
 <h1><a href="/">M-Card</a></h1>
 <nav><a href="/">{nav_status}</a> <a href="/logs">Logs</a> <a href="/config">Configuration</a> <a href="/search">{nav_search}</a></nav>
@@ -121,6 +125,7 @@ def create_app(
     cards_fn: Optional[Callable[[], dict]] = None,
     assign_fn: Optional[Callable[[str, list[str], str], object]] = None,
     language: str = "en",
+    display_png_fn: Optional[Callable[[], bytes]] = None,
 ) -> Flask:
     app = Flask("mcard")
     config_dir = Path(config_dir)
@@ -153,7 +158,20 @@ def create_app(
             (t("Card album"), html.escape(s.get("card_album", ""))),
         ]
         table = "".join(f"<tr><th>{k}</th><td>{v}</td></tr>" for k, v in rows)
-        return page(f"<table>{table}</table>")
+        preview = ""
+        if display_png_fn is not None:
+            # refreshed in place so that scrolling can be followed
+            preview = ('<img id="screen" class="screen" src="/display.png" alt="">'
+                       "<script>setInterval(() => { document.getElementById('screen').src ="
+                       " '/display.png?t=' + Date.now(); }, 500);</script>")
+        return page(f"{preview}<table>{table}</table>")
+
+    @app.get("/display.png")
+    def display_png():
+        if display_png_fn is None:
+            return Response(t("no graphic display"), status=404)
+        return Response(display_png_fn(), mimetype="image/png",
+                        headers={"Cache-Control": "no-store"})
 
     @app.get("/api/status")
     def api_status():

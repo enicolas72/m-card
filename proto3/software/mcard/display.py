@@ -1,4 +1,5 @@
-"""Driver for the 2004 LCD (20x4) through a PCF8574 I2C backpack.
+"""Driver for the 2004 LCD (20x4) through a PCF8574 I2C backpack (`display.type:
+lcd`; the proto 3 OLED lives in oled.py), plus the messages shared by both.
 
 The HD44780 (ROM A00) cannot display accented characters: text is
 transliterated to ASCII. Lines longer than 20 characters scroll in a loop
@@ -86,7 +87,34 @@ class CharLcdBackend(LcdBackend):
             pass
 
 
-class Display:
+class ScreenMessages:
+    """Messages shared by every display type (LCD, OLED); a display
+    implements set_lines() and may override any screen with its own layout."""
+
+    def set_lines(self, *lines: str) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+    def show_boot(self, version: str) -> None:
+        self.set_lines("M-Card", f"v{version}", "Starting...", "")
+
+    def show_waiting(self) -> None:
+        self.set_lines("M-Card", "", "Place an album", "")
+
+    def show_now_playing(self, state: str, album: str, track: str, artist: str = "") -> None:
+        icon = STATE_ICONS.get(state, "?")
+        self.set_lines(f"{icon} {state}", album, track, artist)
+
+    def show_unknown_card(self, uid: str) -> None:
+        self.set_lines("Unknown card", f"UID {uid}", "Added to", "albums.yaml (TODO)")
+
+    def show_todo_card(self, uid: str) -> None:
+        self.set_lines("Card to set up", f"UID {uid}", "Edit albums.yaml", "via the web UI")
+
+    def show_error(self, line1: str, line2: str = "") -> None:
+        self.set_lines("! " + line1, line2, "", "")
+
+
+class Display(ScreenMessages):
     """4-line display: automatic scrolling of lines that are too long,
     backlight sleep after `backlight_timeout_s` without interaction
     (0 = never). wake() turns it back on and re-arms the delay."""
@@ -113,25 +141,6 @@ class Display:
                     self._lines[row] = new
                     self._offsets[row] = 0
             self._render_locked()
-
-    def show_boot(self, version: str) -> None:
-        self.set_lines("M-Card", f"v{version}", "Starting...", "")
-
-    def show_waiting(self) -> None:
-        self.set_lines("M-Card", "", "Place an album", "")
-
-    def show_now_playing(self, state: str, album: str, track: str, artist: str = "") -> None:
-        icon = STATE_ICONS.get(state, "?")
-        self.set_lines(f"{icon} {state}", album, track, artist)
-
-    def show_unknown_card(self, uid: str) -> None:
-        self.set_lines("Unknown card", f"UID {uid}", "Added to", "albums.yaml (TODO)")
-
-    def show_todo_card(self, uid: str) -> None:
-        self.set_lines("Card to set up", f"UID {uid}", "Edit albums.yaml", "via the web UI")
-
-    def show_error(self, line1: str, line2: str = "") -> None:
-        self.set_lines("! " + line1, line2, "", "")
 
     def wake(self) -> None:
         """Turns the backlight back on and re-arms the sleep delay."""

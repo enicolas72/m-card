@@ -1,5 +1,5 @@
 # M-Card — general settings
-# Copied to /etc/mcard/mcard.yaml (done by install.sh)
+# Copied to /etc/mcard/mcard.yaml (done by install.sh) — proto 3
 
 roon:
   # Roon server address. Leave empty for automatic discovery on the
@@ -19,8 +19,31 @@ behavior:
   # Ignore a re-detection of the same card for N seconds
   redetect_cooldown_s: 3.0
   # Card considered removed after N seconds without an answer (smooths the
-  # ACR122U's flaky presence check on some Mifare Ultralight tags)
+  # reader's flaky presence check on some Mifare Ultralight tags)
   removal_grace_s: 1.0
+
+nfc:
+  # PN532 module on the Pi UART (proto 3, see proto3/HOWTO.md),
+  # or "usb" for the ACR122U USB reader (proto 2)
+  device: "tty:AMA0:pn532"
+
+display:
+  # oled = SSD1322 256x64 OLED on SPI (proto 3)
+  # lcd  = 2004A 20x4 LCD on I2C (proto 2, see the lcd section)
+  type: oled
+  # Screen sleeps after N seconds without interaction
+  # (card placed/removed, button); 0 = always on
+  sleep_timeout_s: 120
+
+oled:
+  spi_port: 0
+  spi_device: 0     # CS on CE0 (GPIO 8)
+  gpio_dc: 24       # BCM numbering
+  gpio_rst: 25
+  rotate: 0         # 2 = rotated 180° (panel mounted upside down)
+  contrast: 180     # 0-255; lower = longer panel life
+  fps: 20           # scrolling refresh rate (CPU vs smoothness)
+  font: ""          # TrueType file; empty = font bundled with Pillow
 
 lcd:
   # I2C address of the PCF8574 backpack (usually 0x27, 0x3F for some;
@@ -29,9 +52,6 @@ lcd:
   i2c_port: 1
   cols: 20
   rows: 4
-  # Backlight sleeps after N seconds without interaction
-  # (card placed/removed, button); 0 = always on
-  backlight_timeout_s: 120
 
 buttons:
   # BCM numbering; each button connects the pin to GND (internal pull-up)

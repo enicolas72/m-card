@@ -29,6 +29,29 @@ class MemoryLcd:
         pass
 
 
+class MemoryOled:
+    """In-memory OLED backend: keeps the frames and the described text."""
+
+    size = (256, 64)
+
+    def __init__(self):
+        self.frames = []
+        self.lines = []
+        self.power = True
+
+    def show(self, image):
+        self.frames.append(image.copy())
+
+    def describe(self, lines):
+        self.lines = list(lines)
+
+    def set_power(self, on):
+        self.power = on
+
+    def close(self):
+        pass
+
+
 class SpyRoon:
     """Spy Roon client: records the calls."""
 

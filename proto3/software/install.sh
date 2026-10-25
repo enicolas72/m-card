@@ -20,13 +20,26 @@ echo "== Service user =="
 if ! id mcard &>/dev/null; then
   useradd --system --home-dir /var/lib/mcard --create-home mcard
 fi
-# I2C (LCD), GPIO (buttons) and USB (NFC reader) access
-usermod -aG i2c,gpio,plugdev mcard || true
+# SPI (OLED), UART (PN532 reader), GPIO (buttons), I2C (LCD) and USB (ACR122U) access
+usermod -aG spi,dialout,gpio,i2c,plugdev mcard || true
 
-echo "== Enabling the I2C bus =="
+echo "== Enabling the SPI (OLED) and I2C (LCD) buses =="
+raspi-config nonint do_spi 0 || echo "(raspi-config missing? enable SPI manually)"
 raspi-config nonint do_i2c 0 || echo "(raspi-config missing? enable I2C manually)"
 
-echo "== ACR122U reader: release the device from the kernel driver =="
+echo "== PN532 reader: free the PL011 UART (GPIO 14/15) =="
+# Serial console off, UART hardware on; Bluetooth (unused) gives the PL011
+# back to GPIO 14/15 as /dev/ttyAMA0 (the mini UART is not reliable enough).
+raspi-config nonint do_serial_cons 1 || true
+raspi-config nonint do_serial_hw 0 || true
+BOOT_CONFIG=/boot/firmware/config.txt
+[[ -f "$BOOT_CONFIG" ]] || BOOT_CONFIG=/boot/config.txt
+if [[ -f "$BOOT_CONFIG" ]] && ! grep -q "^dtoverlay=disable-bt" "$BOOT_CONFIG"; then
+  printf '\n# M-Card: PL011 UART for the PN532 reader\ndtoverlay=disable-bt\n' >> "$BOOT_CONFIG"
+fi
+systemctl disable --now hciuart.service 2>/dev/null || true
+
+echo "== ACR122U reader (optional, nfc.device: usb): release it from the kernel driver =="
 cat > /etc/modprobe.d/blacklist-mcard-nfc.conf <<'EOF'
 # The NFC kernel modules grab the ACR122U; nfcpy drives the USB device directly.
 blacklist pn533_usb
@@ -81,6 +94,6 @@ Next steps:
   4. Follow the logs:      journalctl -u mcard -f
   5. Web console:          http://<pi-ip>:8088
 
-A reboot is recommended after the first install (module blacklist + I2C):
+A reboot is required after the first install (UART, SPI, I2C, module blacklist):
   sudo reboot
 EOF
