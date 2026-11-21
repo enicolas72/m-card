@@ -2,7 +2,8 @@
 
 Same high-level API as the LCD `Display` (show_now_playing, set_lines,
 wake...), but drawn with Pillow: proportional anti-aliased font (bundled
-Inter: accents are displayed as-is, no transliteration), a large title on the "now
+Inter: accents are displayed as-is, no transliteration; characters outside
+the font are replaced, see fit_to_font), a large title on the "now
 playing" screen, smooth pixel scrolling of the lines that are too wide.
 
 OLED pixels wear out when they display the same thing for hours: the panel
@@ -15,10 +16,12 @@ rest of the software (tests, --fake mode) runs without the Pi libraries.
 
 from __future__ import annotations
 
+import functools
 import io
 import logging
 import threading
 import time
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -100,6 +103,53 @@ def load_font(size: int, path: str = "", weight: int = 500) -> ImageFont.FreeTyp
     return ImageFont.truetype(str(FONT_DIR / f"Inter-{weight}.ttf"), size)
 
 
+# Letters without a Unicode decomposition to a plain base letter.
+_LETTER_FALLBACKS = {"ł": "l", "Ł": "L", "đ": "d", "Đ": "D", "ħ": "h", "Ħ": "H", "ŧ": "t", "Ŧ": "T"}
+
+
+def _glyph_print(font: ImageFont.FreeTypeFont, ch: str) -> tuple:
+    left, top, right, bottom = font.getbbox(ch)
+    img = Image.new("L", (max(1, right - left), max(1, bottom - top)), 0)
+    ImageDraw.Draw(img).text((-left, -top), ch, font=font, fill=255)
+    return img.size, img.tobytes()
+
+
+@functools.lru_cache(maxsize=16)
+def _notdef_print(font: ImageFont.FreeTypeFont) -> tuple:
+    return _glyph_print(font, "￿")  # never mapped: drawn as the .notdef box
+
+
+@functools.lru_cache(maxsize=4096)
+def has_glyph(font: ImageFont.FreeTypeFont, ch: str) -> bool:
+    """True if `font` can draw `ch`. Pillow does not expose the font's
+    character map, so the rendering is compared with the .notdef box."""
+    return _glyph_print(font, ch) != _notdef_print(font)
+
+
+def fit_to_font(text: str, font: ImageFont.FreeTypeFont) -> str:
+    """Replaces the characters `font` cannot draw (they would show as a box).
+    Roon writes "Jean‐Michel Jarre" with U+2010 HYPHEN, which the bundled
+    latin subset lacks: dashes become "-", spaces " ", other letters their
+    base letter (ř → r), anything else "?"."""
+    out = []
+    for ch in unicodedata.normalize("NFC", text):
+        if has_glyph(font, ch):
+            out.append(ch)
+            continue
+        category = unicodedata.category(ch)
+        if category == "Pd":
+            out.append("-")
+        elif category == "Zs":
+            out.append(" ")
+        elif category in ("Cc", "Cf"):
+            continue  # control and invisible format characters
+        else:
+            base = _LETTER_FALLBACKS.get(ch) or "".join(
+                c for c in unicodedata.normalize("NFKD", ch) if not unicodedata.combining(c))
+            out.append(base if base and all(has_glyph(font, c) for c in base) else "?")
+    return "".join(out)
+
+
 @dataclass
 class _Row:
     """One line of text in its own box; scrolls if wider than the box."""
@@ -116,6 +166,7 @@ class _Row:
     text_w: float = field(init=False)
 
     def __post_init__(self):
+        self.text = fit_to_font(self.text, self.font)
         self.text_w = self.font.getlength(self.text)
 
     @property

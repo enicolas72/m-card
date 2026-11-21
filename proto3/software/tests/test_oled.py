@@ -24,6 +24,27 @@ def test_now_playing_layout_keeps_accents():
     screen.close()
 
 
+def test_characters_missing_from_the_font_are_replaced():
+    font = oled.load_font(13)
+    assert oled.fit_to_font("Jean‐Michel Jarre", font) == "Jean-Michel Jarre"  # Roon's hyphen
+    assert oled.fit_to_font("Dvořák", font) == "Dvorák"
+    assert oled.fit_to_font("Łódź", font) == "Lódz"
+    assert oled.fit_to_font("10 000", font) == "10 000"
+    assert oled.fit_to_font("坂本", font) == "??"
+    assert oled.fit_to_font("Oxygène — « Pt. 4 »", font) == "Oxygène — « Pt. 4 »"
+
+
+def test_roon_hyphen_displays_like_ascii_hyphen():
+    panel = MemoryOled()
+    screen = OledDisplay(panel)
+    screen.show_now_playing("playing", "Electronica 1", "The Time Machine", "Jean‐Michel Jarre")
+    count = len(panel.frames)
+    screen.show_now_playing("playing", "Electronica 1", "The Time Machine", "Jean-Michel Jarre")
+    assert len(panel.frames) == count   # same picture: nothing to redraw
+    assert panel.lines[0] == "Jean-Michel Jarre"
+    screen.close()
+
+
 def test_same_content_does_not_redraw():
     panel = MemoryOled()
     screen = OledDisplay(panel)

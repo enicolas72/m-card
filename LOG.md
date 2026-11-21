@@ -1,5 +1,27 @@
 # M-Card project log
 
+## 2026-11-21 19:10 — Proto 3 wiring docs; OLED glyph fallback (Roon's U+2010 hyphen)
+
+- `proto3/docs/WIRING.md` rewritten for proto 3 (it still described the
+  proto 2 LCD + ACR122U): full Pi header map, OLED section with the 2×8
+  screen-pin table and its orientation, PN532 section (switches 0-0),
+  buttons, power, bring-up order. New overview `wiring-diagram.svg` (all
+  40 Pi pins, colour-coded wires, both modules with their own pin labels).
+  HOWTO §2 now points to it and keeps only the two traps; CLAUDE.md
+  points to both files. BOM.md and ASSEMBLY.md still describe proto 2.
+- OLED showed "Jean▮Michel Jarre": Roon writes U+2010 HYPHEN, absent from
+  the bundled Inter latin subset, so Pillow drew the .notdef box.
+  `oled.fit_to_font()` (applied to every row) replaces any character the
+  font cannot draw: dashes → "-", special spaces → " ", letters → base
+  letter (ř → r, ł → l), anything else → "?". Pillow exposes no cmap, so
+  `has_glyph()` compares the rendering with the .notdef rendering of
+  U+FFFF (cached); works with any `oled.font`. Bundling latin-ext instead
+  (~2× the font size) was left as an option.
+- LCD `to_lcd_ascii` dropped that hyphen ("JeanMichel"): every Unicode
+  dash (category Pd) now becomes "-". Same bug remains in the deployed
+  proto 2 (not touched).
+- 91 tests (3 new).
+
 ## 2026-11-21 17:50 — Proto 3 OLED validated on the hardware; wiring diagrams
 
 - The Audiophonics 3.12" OLED works on `mcard2` (luma test, then the M-Card

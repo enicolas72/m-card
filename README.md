@@ -15,7 +15,8 @@ The current device is **prototype 2**, archived as a whole in [`proto2/`](proto2
 (working and in daily use; the paths below). **Prototype 3** is in progress in
 [`proto3/`](proto3/), evolving from a copy of proto 2: white 256×64 OLED and a
 compact PN532 reader (both validated on a second Pi), see
-[`proto3/HOWTO.md`](proto3/HOWTO.md).
+[`proto3/HOWTO.md`](proto3/HOWTO.md) and the wiring in
+[`proto3/docs/WIRING.md`](proto3/docs/WIRING.md).
 
 | Path | Contents |
 |---|---|

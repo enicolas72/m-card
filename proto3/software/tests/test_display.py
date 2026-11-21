@@ -7,6 +7,7 @@ from mcard.display import Display, to_lcd_ascii
 
 def test_transliteration_of_accents():
     assert to_lcd_ascii("Éléphant à l'œuvre — déjà…") == "Elephant a l'oeuvre - deja..."
+    assert to_lcd_ascii("Jean‐Michel Jarre") == "Jean-Michel Jarre"   # Roon's U+2010 hyphen
 
 
 def test_short_lines_padded_to_width():

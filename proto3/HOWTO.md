@@ -55,67 +55,20 @@ Colour screens were considered and set aside for now:
 
 ## 2. Wiring
 
-Everything on the Pi's 40-pin header, female-female Dupont wires. The LCD is
-gone, which frees pins 2–6.
+The full wiring reference is [`docs/WIRING.md`](docs/WIRING.md): Pi header
+map, both modules, buttons, power and bring-up order, with an overview
+diagram ([`docs/wiring-diagram.svg`](docs/wiring-diagram.svg)) and one
+detail diagram per module ([`docs/pn532-wiring.svg`](docs/pn532-wiring.svg),
+[`docs/oled-wiring.svg`](docs/oled-wiring.svg)).
 
-### OLED (7 wires, pins 17–24 block)
-
-![OLED wiring](docs/oled-wiring.svg)
-
-The Audiophonics module has an unlabelled **2×8 header** (pin table on the
-product page). Pin numbers are printed on the display side only: 15 · 16 at
-one end, 1 · 2 at the other, **odd pins in the column next to the glass**.
-The pins stick out at the back, which is the side the diagram shows (seen
-from there, pin 15 is top right, pin 1 bottom right).
-
-| Screen pin | Signal | Pi pin (physical) | Pi signal |
-|---|---|---|---|
-| 1 | GND | 20 | GND |
-| 2 | VDD (3.3–5 V) | 17 | **3.3 V** |
-| 4 | SCLK (D0) | 23 | GPIO11 (SPI0 SCLK) |
-| 5 | SDIN (D1) | 19 | GPIO10 (SPI0 MOSI) |
-| 16 | /CS | 24 | GPIO8 (SPI0 CE0) |
-| 14 | D/C | 18 | GPIO24 |
-| 15 | /RST | 22 | GPIO25 |
-| 3, 6–13 | not connected | | |
-
-- Audiophonics ships it set to **4-wire SPI** (nothing to change). Other
-  SSD1322 boards may select the mode with resistors/jumpers on the back.
-- Screen pins 1 (GND) and 2 (VDD) side by side: a swap can damage the module.
-- Pins are configurable in `mcard.yaml` (`oled.gpio_dc`, `oled.gpio_rst`).
-
-### PN532 (4 wires, pins 1–10)
-
-![PN532 wiring](docs/pn532-wiring.svg)
-
-Solder the **4-pin header** (GND / VCC / SDA / SCL): I2C and HSU share it,
-SDA = TXD and SCL = RXD in HSU mode. The 8-pin header (SCK, MISO, MOSI, SS,
-VCC, GND, IRQ, RSTO) is for SPI and stays unused.
-
-| PN532 pin | Pi pin (physical) | Pi signal |
-|---|---|---|
-| VCC | 1 | **3.3 V** |
-| GND | 6 | GND |
-| SDA (= TXD) | 10 | GPIO15 (RXD) — crossed |
-| SCL (= RXD) | 8 | GPIO14 (TXD) — crossed |
-
-- **Mode switches on HSU (UART)**: both switches at 0/OFF on the Elechouse V3
-  (the table is printed on the board: HSU 0-0, I2C 1-0, SPI 0-1). Check them
-  on arrival: the first module received was not on 0-0. The mode is read at
-  power-on only, so power-cycle after moving them.
-- **Power it from 3.3 V**, not 5 V: its signals then stay at the Pi's 3.3 V
-  logic level (some listings mention "5 V TTL" levels on the UART — check
-  the board you received).
-
-### Buttons: unchanged
-
-GPIO5/6/13 (pins 29/31/33), common GND on pin 39 — see `docs/WIRING.md`.
-
-### Power budget
-
-Pi 3B+ ~1.2 A + OLED (up to ~0.1 A, mostly when many pixels are lit) +
-PN532 (~0.1 A while the RF field is on): the same 5 V / 3 A USB-C supply
-keeps a large margin.
+In short: PN532 on pins 1 / 6 / 8 / 10, OLED on pins 17–24 (not 21),
+buttons unchanged on 29 / 31 / 33 + GND 39. The LCD is gone, which frees
+the I2C pins. Two traps, both met on the first build:
+- the PN532's mode switches must be on **0-0** (HSU) and are read at
+  power-on only;
+- the Audiophonics OLED's **2×8 header is unlabelled** on the side where
+  the wires plug in: odd pins are in the column next to the glass, and
+  screen pins 1 (GND) and 2 (VDD) are side by side.
 
 ## 3. Software installation
 

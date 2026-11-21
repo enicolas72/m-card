@@ -33,7 +33,8 @@ def to_lcd_ascii(text: str) -> str:
     """Transliterates Unicode accents/typography to the HD44780's printable ASCII."""
     text = text.replace("œ", "oe").replace("Œ", "OE").replace("æ", "ae").replace("Æ", "AE")
     text = text.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
-    text = text.replace("–", "-").replace("—", "-").replace("…", "...")
+    # every dash (– —, and the U+2010 hyphen of Roon's "Jean‐Michel Jarre") becomes "-"
+    text = "".join("-" if unicodedata.category(c) == "Pd" else c for c in text).replace("…", "...")
     decomposed = unicodedata.normalize("NFKD", text)
     return "".join(c for c in decomposed if ord(c) < 128 and c.isprintable() or c == " ")
 
