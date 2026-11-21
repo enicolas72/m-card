@@ -1,5 +1,23 @@
 # M-Card project log
 
+## 2026-11-21 17:50 — Proto 3 OLED validated on the hardware; wiring diagrams
+
+- The Audiophonics 3.12" OLED works on `mcard2` (luma test, then the M-Card
+  screens through the service). Proto 3's two new parts are now validated.
+- Its header is a **2×8, unlabelled on the component side**: the pin table
+  comes from the Audiophonics product page (1 GND, 2 VDD, 4 SCLK, 5 SDIN,
+  14 D/C, 15 /RST, 16 /CS, others NC); the physical layout was confirmed
+  by Eric from the numbers printed on the display side (odd pins in the
+  column next to the glass). HOWTO table now lists screen pin numbers.
+- `proto3/docs/oled-wiring.svg`: module drawn **from the back** (where the
+  wires plug in, as Eric asked, to avoid mirror mistakes), Pi header
+  enlarged for pins 1–26 with the PN532 pins shown as taken; wires matched
+  by colour rather than drawn across the 16-pin header.
+- HOWTO OLED test fixed before use: `input()` returned at once (the heredoc
+  is Python's stdin) and luma blanks the panel at exit → `time.sleep(15)`;
+  `cd /tmp` first (lgpio needs a writable cwd); stop the service first
+  (it holds the DC/RST GPIOs).
+
 ## 2026-10-25 18:05 — Proto 3 software: 256×64 OLED, PN532 over UART (validated), v0.2.0
 
 - Parts chosen and ordered: Audiophonics 3.12" 256×64 white OLED (SSD1322,

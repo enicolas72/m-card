@@ -7,11 +7,12 @@ Proto 3 evolves from proto 2 (copied from `../proto2/`). Changes so far:
 | Screen | LCD 2004A, 20×4 characters, blue backlight, I2C | **OLED 3.12" 256×64, white on black**, 16 grey levels, SPI |
 | RFID reader | ACR122U board out of its shell (~91 mm wide, USB) | **PN532 NFC module V3** (42.7 × 40.4 mm, UART) |
 
-Status (2026-10-25): **PN532 validated end to end** on a second Pi 3
-(`mcard2`): cards read over UART, albums play on Roon (the extension shows
-up as "M-Card 0.2", next to the proto 2 device's "M-Card 0.1"). **OLED not
-received yet**: its software is tested in `--fake` mode only. Enclosure and the other docs
-(`docs/`) still describe proto 2 and will follow once the parts are validated.
+Status (2026-11-21): **both parts validated on the hardware**, on a second
+Pi 3 (`mcard2`). PN532 (2026-10-25): cards read over UART, albums play on
+Roon (the extension shows up as "M-Card 0.2", next to the proto 2 device's
+"M-Card 0.1"). OLED (2026-11-21): wired as in the diagram below, luma test
+and the M-Card screens work. The enclosure and the other docs (`docs/`)
+still describe proto 2.
 
 ## 1. Parts
 
@@ -59,19 +60,28 @@ gone, which frees pins 2–6.
 
 ### OLED (7 wires, pins 17–24 block)
 
-| OLED pin | Pi pin (physical) | Pi signal |
-|---|---|---|
-| GND | 20 | GND |
-| VCC | 17 | **3.3 V** |
-| SCL / SCLK / D0 | 23 | GPIO11 (SPI0 SCLK) |
-| SDA / MOSI / D1 | 19 | GPIO10 (SPI0 MOSI) |
-| CS | 24 | GPIO8 (SPI0 CE0) |
-| DC | 18 | GPIO24 |
-| RES / RST | 22 | GPIO25 |
+![OLED wiring](docs/oled-wiring.svg)
 
-- The module must be in **4-wire SPI** mode (Audiophonics' default; some of
-  these boards select the mode with resistors/jumpers on the back: check
-  before powering).
+The Audiophonics module has an unlabelled **2×8 header** (pin table on the
+product page). Pin numbers are printed on the display side only: 15 · 16 at
+one end, 1 · 2 at the other, **odd pins in the column next to the glass**.
+The pins stick out at the back, which is the side the diagram shows (seen
+from there, pin 15 is top right, pin 1 bottom right).
+
+| Screen pin | Signal | Pi pin (physical) | Pi signal |
+|---|---|---|---|
+| 1 | GND | 20 | GND |
+| 2 | VDD (3.3–5 V) | 17 | **3.3 V** |
+| 4 | SCLK (D0) | 23 | GPIO11 (SPI0 SCLK) |
+| 5 | SDIN (D1) | 19 | GPIO10 (SPI0 MOSI) |
+| 16 | /CS | 24 | GPIO8 (SPI0 CE0) |
+| 14 | D/C | 18 | GPIO24 |
+| 15 | /RST | 22 | GPIO25 |
+| 3, 6–13 | not connected | | |
+
+- Audiophonics ships it set to **4-wire SPI** (nothing to change). Other
+  SSD1322 boards may select the mode with resistors/jumpers on the back.
+- Screen pins 1 (GND) and 2 (VDD) side by side: a swap can damage the module.
 - Pins are configurable in `mcard.yaml` (`oled.gpio_dc`, `oled.gpio_rst`).
 
 ### PN532 (4 wires, pins 1–10)
@@ -174,8 +184,11 @@ a vinyl sleeve, bottom corner on the backrest side, to check the range.
 ### Then the OLED
 
 ```bash
+sudo systemctl stop mcard                           # it holds the DC/RST GPIOs
 ls /dev/spidev0.*                                   # spidev0.0 must exist
+cd /tmp                                             # lgpio needs a writable cwd
 sudo -u mcard /opt/mcard/venv/bin/python - <<'EOF'
+import time
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
 from luma.oled.device import ssd1322
@@ -183,9 +196,13 @@ dev = ssd1322(spi(port=0, device=0, gpio_DC=24, gpio_RST=25))
 with canvas(dev) as draw:
     draw.rectangle(dev.bounding_box, outline="white")
     draw.text((10, 25), "Hello M-Card", fill="white")
-input("Enter to quit")
+time.sleep(15)   # luma blanks the panel when the script exits
 EOF
 ```
+
+A white frame with "Hello M-Card" for 15 s = wiring OK. (Not `input()`:
+the heredoc is Python's stdin, so it would return at once and the screen
+would only flash.)
 
 Then `sudo systemctl start mcard`: "Place an album" in large type.
 
