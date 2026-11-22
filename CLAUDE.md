@@ -24,11 +24,12 @@ cd proto3/software
                                                     # (type UID + Enter = place card; Enter = remove; EOF = quit)
 ```
 
-3D enclosure (`proto3/enclosure/`): OpenSCAD snapshot is installed at `/opt/homebrew/bin/openscad` (the 2021.01 x86_64 cask hangs on this arm64 Mac — don't use it).
+3D enclosure (`proto3/enclosure/`, proto 3 V1.0: flat 190×96×50 box = `tray` (floor + walls, Pi) + `cover` (the whole top: card slot, PN532 bay, OLED, buttons), corner origin, dummy components + keep-out volumes for collision checks): OpenSCAD snapshot is installed at `/opt/homebrew/bin/openscad` (the 2021.01 x86_64 cask hangs on this arm64 Mac — don't use it).
 
 ```bash
 cd proto3/enclosure
-openscad -o stl/shell.stl -D 'part="shell"' mcard.scad   # parts: shell|backrest|backrest_cover|lid|assembly
+openscad -o stl/cover.stl -D 'part="cover"' mcard.scad   # parts: tray|cover|icon_plate|logo|assembly|exploded
+./render.sh                                              # all STLs + PNG views + drawing.svg
 ```
 
 Marketing page (`marketing/`): `index.html` is a single self-contained file (everything inlined, works offline) built from `marketing/build/` — `npm install && npm run build`; `./export-stl.sh` re-exports the assembled enclosure parts (`parts.scad` includes `proto2/enclosure/mcard.scad` with `part = "none"`). Copy is in English. The card strip is canvas-drawn on purpose (CSS-animated strip + mask lost tiles in Safari next to the WebGL context). `card-covers/` (source artwork, PSD) is git-ignored.
@@ -69,4 +70,4 @@ Config lives in a directory (`--config`), two files: `mcard.yaml` (settings) and
 - Roon pairing: first run needs the extension enabled in Roon → Settings → Extensions; token persisted to `roon.token_file`.
 - `roonapi.play_media(zone_id, path)` matches each path element by exact title. Roon exposes no stable album ID (browse `item_key`s are session-scoped), so `path: ["Library", "Artists", <artist>, <album>]` is the stable identifier; /search builds it from the albums hierarchy (subtitle = artist), falling back to `["Library", "Albums", <title>]` when the artist isn't in the Artists hierarchy.
 - Tests import `conftest.py` helpers (`MemoryLcd`, `SpyRoon`) directly (`from conftest import ...`).
-- STL exports are ASCII; print orientations are baked into the `part=` transforms (shell prints upside-down).
+- STL exports are ASCII; print orientations are baked into the `part=` transforms (proto 3 cover and proto 2 shell print upside-down).

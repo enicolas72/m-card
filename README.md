@@ -16,7 +16,9 @@ The current device is **prototype 2**, archived as a whole in [`proto2/`](proto2
 [`proto3/`](proto3/), evolving from a copy of proto 2: white 256×64 OLED and a
 compact PN532 reader (both validated on a second Pi), see
 [`proto3/HOWTO.md`](proto3/HOWTO.md) and the wiring in
-[`proto3/docs/WIRING.md`](proto3/docs/WIRING.md).
+[`proto3/docs/WIRING.md`](proto3/docs/WIRING.md). Its new flat enclosure
+(card standing in a slot, screen and buttons beside it) is designed but not
+printed yet: [`proto3/enclosure/`](proto3/enclosure/).
 
 | Path | Contents |
 |---|---|

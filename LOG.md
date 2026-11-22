@@ -1,5 +1,45 @@
 # M-Card project log
 
+## 2026-11-22 18:10 — Proto 3 enclosure V1.0 (flat box after Eric's sketch)
+
+- New `proto3/enclosure/mcard.scad` replacing the proto 2 copy (its STLs
+  and images removed; proto 2 keeps its own in `proto2/enclosure/`). A flat
+  **190 × 96 × 50** box from Eric's hand sketch and answers: 50 mm height
+  accepted, cards only (no more vinyl/CD), flat screen, proto 2 buttons,
+  logo inlaid.
+  - Card standing in portrait on the left, 32 mm deep (53.6 mm shows). The
+    PN532 stands behind it, ~3 mm from the card. Its 40.4 mm side sets the
+    height: 43 mm inside.
+  - OLED window + 3 buttons (cut-through icons over a colour plate) on the
+    right, centred in the space next to the card. Rear USB-C.
+  - "M." logo: pocket in the front face + letters as a separate STL (other
+    colour, glued, 1 mm proud). `logo.scad` is traced from
+    `marketing/build/img/logo-m.png` by `tools/trace_logo.py` (marching
+    squares + Douglas-Peucker).
+- Eric asked for a screwed screen + buttons plate. Instead, the whole top is
+  that plate (`cover`), screwed with 4 hidden screws from below into the
+  `tray` (floor, walls, Pi). A separate plate would either sit proud of the
+  top (+4 mm) or rest on ledges that need supports. Everything wired sits
+  on the cover, which prints upside down, support-free.
+- Pi 3 lies flat under the screen, turned 180°: GPIO at the front, power at
+  the back.
+- The model holds dummy components and keep-out volumes (Dupont plugs,
+  wire bends, button bodies, OLED header). Collision checks are
+  `intersection()` exports. They moved the Pi 2 mm back: its GPIO plugs
+  hit the cover rim.
+- PN532 measured from Eric's photo, using the pin pitch as the scale:
+  42.7 × 40.4, 4-pin right-angle header on a 40.4 edge (45 mm with the
+  pins), Dupont plugs lying over the board.
+  - Mounted header toward the screen, DIP switch down. The right stop is
+    cut around the plugs.
+  - Screen, buttons and Pi moved 7 mm right, so the plugs end ~7 mm before
+    the Pi's USB block.
+- Card read test passed (Eric): only the card's bottom part facing the
+  reader is enough.
+- `render.sh` regenerates the STLs, 4 PNG views and `drawing.svg` (top view
+  + section through the slot, from 2D OpenSCAD cuts). Not printed yet.
+  Still to check: OLED hole size (M2.5 assumed), USB-C cut-out, slot width.
+
 ## 2026-11-21 19:10 — Proto 3 wiring docs; OLED glyph fallback (Roon's U+2010 hyphen)
 
 - `proto3/docs/WIRING.md` rewritten for proto 3 (it still described the
