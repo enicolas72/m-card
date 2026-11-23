@@ -1,5 +1,33 @@
 # M-Card project log
 
+## 2026-11-23 17:55 — Proto 3 enclosure: flush logo and icons
+
+- Eric's request, drawn on page 2 of his sketch: no more letters glued on
+  the front face (thin parts, the glue oozed and left marks).
+- **Logo**: the front wall has a logo-shaped hole (0.15 mm clearance).
+  The `logo` piece is a 55 × 31 × 1.2 backing plate carrying 3.1 mm
+  letters. It is glued inside the wall, on the plate's 3 mm margin, and
+  the letters come through 0.1 mm proud.
+  - Logo moved 2 mm right: the plate clears the cover's front-left screw
+    boss.
+- **Icons**: the same principle. The recess under the top is now 1.6 mm
+  deep, leaving 1.4 mm of skin (7 layers of 0.2). The `icon_plate`
+  carries the three raised glyphs, 1.5 mm tall, through 0.15 mm-clearance
+  holes, 0.1 mm proud. Pause bars spaced to 0.22 s.
+- **Printability of the wall between holes**: closing (offset in/out,
+  r 0.45) fills gaps narrower than 0.9 mm in the raised shapes. The holes
+  follow those shapes, so no wall sliver under 0.6 mm is left (checked by
+  offset analysis).
+  - The logo's dot sat 1.14 mm from the stroke on the artwork, which left
+    0.44 mm of wall between their holes. It is moved 0.35 mm away
+    (imperceptible) and kept out of the closing.
+  - `trace_logo.py` now also emits each outline alone
+    (`logo_part_2d(i, w)`); `logo_2d` is unchanged.
+- 0.1 mm proud is one layer: print `logo` and `icon_plate` at 0.1 mm.
+- Collision checks rerun: the plates touch only their gluing faces. The
+  earlier dark notches in the renders were OpenCSG preview artifacts
+  (gone with `--render`).
+
 ## 2026-11-22 18:10 — Proto 3 enclosure V1.0 (flat box after Eric's sketch)
 
 - New `proto3/enclosure/mcard.scad` replacing the proto 2 copy (its STLs

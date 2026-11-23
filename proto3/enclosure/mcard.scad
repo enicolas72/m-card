@@ -7,12 +7,14 @@
 //   - PN532 reader standing inside, just behind the card, parallel to it;
 //   - the screen and the buttons centered in the space right of the card;
 //   - 3.12" OLED at the back right of the top, the prev / play-pause /
-//     next buttons in a row in front of it, cut-through icons (proto 2
-//     design: 12 mm buttons, contrasting plate glued underneath);
-//   - "M." logo inlaid in the front face, under the card.
+//     next buttons in a row in front of it (12 mm, as on proto 2); their
+//     icons are raised glyphs of a contrasting plate glued under the top,
+//     through the top, 0.1 mm proud;
+//   - "M." logo the same way: letters on a backing plate glued inside the
+//     front wall, through it, 0.1 mm proud (no glue on the visible face).
 //
 // Two main parts. The TRAY is the floor and the walls (Raspberry Pi
-// posts, rear USB-C, logo pocket). The COVER is the whole top: card slot,
+// posts, rear USB-C, logo hole). The COVER is the whole top: card slot,
 // reader bay, OLED window and posts, buttons, icons. Everything that has
 // wires sits on the cover: wire it on the bench, plug the wires into the
 // Pi, lower the cover onto the tray, 4 screws from below.
@@ -23,8 +25,10 @@
 // Parts (`part` variable):
 //   "tray"        floor on the bed
 //   "cover"       upside down (top face on the bed)
-//   "icon_plate"  flat, contrasting color, glued into the recess under the icons
-//   "logo"        flat, contrasting color, glued into the front-face pocket
+//   "icon_plate"  plate down, contrasting color: glued into the recess under the
+//                 icons, its glyphs through the top (print at 0.1 mm layers)
+//   "logo"        plate down, contrasting color: glued inside the front wall,
+//                 its letters through it (print at 0.1 mm layers)
 //   "assembly"    overall view with dummy components (do not print)
 //   "exploded"    the same, cover lifted
 //
@@ -128,21 +132,32 @@ btn_x       = [107, 129, 151];   // ⏮ ⏯ ⏭, left to right
 btn_nut_r   = 8.5;    // nut footprint under the skin: keep clear
 icon_s      = 5;      // glyph size
 icon_dy     = 12.5;   // icon center in front of the button center
-icon_recess_t = 1.5;  // recess under the icons (front skin left: 1.5)
-icon_half_h = 4;      // recess half-height around the glyphs
-icon_plate_gap = 0.2; // plate clearance per side
+icon_recess_t = 1.6;  // recess under the icons: 1.4 of skin left (7 layers of 0.2)
+icon_half_h = 4;      // recess half-height (the button nuts start 0.5 behind it)
+icon_plate_gap = 0.2; // plate clearance per side, in the recess
+icon_gap    = 0.15;   // glyph clearance per side, in the skin
+icon_proud  = 0.1;    // the raised glyphs stand out of the top by this much
+fill_gaps   = 0.45;   // gaps and corners under 2 x this in the raised shapes are filled:
+                      // what is left of the skin between the holes stays printable
 
 icon_y = btn_y - icon_dy;
+icon_plate_t = icon_recess_t - 0.2;                // seated against the recess ceiling
+icon_glyph_h = top_t - icon_recess_t + icon_proud;  // glyphs above the plate
 
 /* ------------------- logo ------------------- */
 
+// The letters stand on a backing plate glued inside the front wall and go
+// through a logo-shaped hole in it: the glue stays out of sight.
 logo_w      = 50;     // logo width on the front face (height = logo_w * logo_aspect)
-logo_cx     = slot_cx;    // under the card
+logo_cx     = slot_cx + 2;  // under the card; the plate clears the front-left boss
 logo_cz     = box_h/2;
-logo_depth  = 1.2;    // pocket depth in the 3 mm wall
-logo_proud  = 1.0;    // the glued letters stand out by this much (0 = flush)
+logo_proud  = 0.1;    // the letters stand out of the front face by this much
 logo_bold   = 0.2;    // thickens the strokes: the flourish's tip stays printable
-logo_gap    = 0.15;   // pocket clearance per side
+logo_gap    = 0.15;   // hole clearance per side
+logo_dot_shift = [0.24, -0.26];   // the dot, 0.35 mm farther from the tail (1.14 mm apart
+                                  // on the artwork): 0.8 mm of wall between their holes
+logo_plate_t = 1.2;   // backing plate
+logo_plate_m = 3;     // plate margin around the letters (the glue goes there)
 
 /* ------------------- Raspberry Pi 3 ------------------- */
 
@@ -206,9 +221,16 @@ module oblong(w, d, h) {
     hull() for (x = [-1, 1]) translate([x*(w - d)/2, 0, 0]) cylinder(d = d, h = h, $fn = fn);
 }
 
-// the logo as printed (strokes slightly thickened)
+// morphological closing: fills gaps and inner corners narrower than 2 r
+module closed(r) { offset(r = -r, $fn = 16) offset(r = r, $fn = 16) children(); }
+
+// the raised letters (strokes slightly thickened); extra > 0: their hole.
+// The stroke's own narrow gaps are filled; the dot stays apart.
 module logo_shape(extra = 0) {
-    offset(r = logo_bold + extra, $fn = 16) logo_2d(logo_w);
+    offset(r = extra, $fn = 16) union() {
+        closed(fill_gaps) offset(r = logo_bold, $fn = 16) logo_part_2d(0, logo_w);
+        translate(logo_dot_shift) offset(r = logo_bold, $fn = 16) logo_part_2d(1, logo_w);
+    }
 }
 
 module _tri(s, dir) { polygon([[0, -s/2], [0, s/2], [dir*0.87*s, 0]]); }
@@ -220,17 +242,18 @@ module _icon_prev(s) {
     }
 }
 module _icon_next(s) { mirror([1, 0]) _icon_prev(s); }
-module _icon_playpause(s) {
-    translate([0.14*s, 0]) {
+module _icon_playpause(s) {   // bars 0.22 s apart: 0.8 mm of skin between their holes
+    translate([0.12*s, 0]) {
         translate([-1.05*s, 0]) _tri(s, 1);
         translate([0.15*s, -s/2]) square([0.22*s, s]);
-        translate([0.55*s, -s/2]) square([0.22*s, s]);
+        translate([0.59*s, -s/2]) square([0.22*s, s]);
     }
 }
 module _btn_icon(i) {
-    if (i == 0) _icon_prev(icon_s);
-    else if (i == 1) _icon_playpause(icon_s);
-    else _icon_next(icon_s);
+    closed(fill_gaps)
+        if (i == 0) _icon_prev(icon_s);
+        else if (i == 1) _icon_playpause(icon_s);
+        else _icon_next(icon_s);
 }
 
 // outline of the recess under the icons (inset > 0: the plate)
@@ -272,9 +295,9 @@ module tray() {
                 translate([x*usbc_screw_dx/2, 0, 0])
                     cylinder(d = usbc_screw_d, h = wall + 2*eps, $fn = fn);
         }
-        // logo pocket in the front face
-        translate([logo_cx, logo_depth, logo_cz]) rotate([90, 0, 0])
-            linear_extrude(logo_depth + eps) logo_shape(logo_gap);
+        // logo hole through the front wall (the letters come through from inside)
+        translate([logo_cx, wall + eps, logo_cz]) rotate([90, 0, 0])
+            linear_extrude(wall + 2*eps) logo_shape(logo_gap);
         // vents under the Raspberry Pi
         for (i = [0 : 7])
             translate([pi_x0 + 11 + 9*i, pi_y0 + pi_wd/2, -eps])
@@ -385,10 +408,11 @@ module cover() {
                 cylinder(d = btn_d, h = top_t + 2*eps, $fn = fn);
         // recess under the icons (the color plate goes in it)
         translate([0, 0, seam_z - eps]) linear_extrude(icon_recess_t + eps) icon_recess_2d();
-        // cut-through icons
+        // icon holes: the plate's raised glyphs come through
         for (i = [0 : 2])
             translate([btn_x[i], icon_y, seam_z + icon_recess_t - eps])
-                linear_extrude(top_t - icon_recess_t + 2*eps) _btn_icon(i);
+                linear_extrude(top_t - icon_recess_t + 2*eps)
+                    offset(r = icon_gap, $fn = 16) _btn_icon(i);
         // insert pockets at the bottom of the bosses
         for (p = boss_pos)
             translate([p[0], p[1], boss_z0]) insert_pocket();
@@ -397,12 +421,31 @@ module cover() {
 
 /* ------------------- small parts ------------------- */
 
+// printed plate down: the glyph tops are the visible faces
 module icon_plate() {
-    linear_extrude(icon_recess_t - 0.2) icon_recess_2d(icon_plate_gap);
+    linear_extrude(icon_plate_t) icon_recess_2d(icon_plate_gap);
+    for (i = [0 : 2])
+        translate([btn_x[i], icon_y, 0])
+            linear_extrude(icon_plate_t + icon_glyph_h) _btn_icon(i);
 }
 
+// backing plate outline, logo coordinates: a rounded rectangle around the
+// letters, its left edge trimmed clear of the front-left cover boss
+function logo_plate_x0() = boss_pos[0][0]
+    + sqrt(pow(boss_d/2 + 0.5, 2) - pow(boss_pos[0][1] - wall - logo_plate_t, 2));
+module logo_plate_2d() {
+    hw = logo_w/2 + logo_bold + logo_plate_m;
+    hh = logo_w*logo_aspect/2 + logo_bold + logo_plate_m;
+    intersection() {
+        offset(r = 2, $fn = fn) square([2*hw - 4, 2*hh - 4], center = true);
+        translate([logo_plate_x0() - logo_cx, -hh]) square([2*hw, 2*hh]);
+    }
+}
+
+// printed plate down: the letter tops are the visible faces
 module logo_piece() {
-    linear_extrude(logo_depth + logo_proud) logo_shape();
+    linear_extrude(logo_plate_t) logo_plate_2d();
+    linear_extrude(logo_plate_t + wall + logo_proud) logo_shape();
 }
 
 /* ------------------- dummy components (views and checks) ------------------- */
@@ -477,9 +520,13 @@ module tray_components() {
 
 /* ------------------- rendering ------------------- */
 
-// the visible face (top of the print) stands logo_proud out of the wall
+// plate against the wall's inside face, letter tops logo_proud out of the front
 module logo_in_place() {
-    translate([logo_cx, logo_depth, logo_cz]) rotate([90, 0, 0]) logo_piece();
+    translate([logo_cx, wall + logo_plate_t, logo_cz]) rotate([90, 0, 0]) logo_piece();
+}
+// plate against the recess ceiling, glyph tops icon_proud above the top
+module icon_plate_in_place() {
+    translate([0, 0, seam_z + icon_recess_t - icon_plate_t]) icon_plate();
 }
 
 module assembly(lift = 0) {
@@ -488,7 +535,7 @@ module assembly(lift = 0) {
     tray_components();
     translate([0, 0, lift]) {
         color("Gainsboro") cover();
-        color("DarkOrange") translate([0, 0, seam_z]) icon_plate();
+        color("DarkOrange") icon_plate_in_place();
         cover_components();
     }
 }

@@ -6,7 +6,8 @@ Usage (Pillow needed):
 Marching squares on the anti-aliased alpha (threshold 0.5, linear interpolation
 of the crossings: sub-pixel accurate), loops linked, simplified with
 Douglas-Peucker, classified outer/hole by nesting. Output: logo.scad with
-module logo_2d(w) = the logo scaled to width w (mm), centered on the origin.
+module logo_2d(w) = the logo scaled to width w (mm), centered on the origin,
+and logo_part_2d(i, w) = its outer outline i alone (largest first).
 """
 import sys
 from PIL import Image
@@ -141,5 +142,12 @@ with open(dst, "w") as f:
     for i in holes:
         f.write(f"    polygon({fmt(loops[i])});\n")
     f.write("  }\n}\n")
+    # each outer outline on its own, largest first (0 = the stroke, 1 = the dot)
+    f.write(f"\nlogo_parts = {len(outers)};\n")
+    f.write("// outline i alone, scaled to width w (same placement as logo_2d)\n")
+    f.write("module logo_part_2d(i, w) {\n  scale([w, w])\n")
+    for k, i in enumerate(sorted(outers, key=lambda i: -abs(area(loops[i])))):
+        f.write(f"    {'if' if k == 0 else 'else if'} (i == {k}) polygon({fmt(loops[i])});\n")
+    f.write("}\n")
 print(f"{len(loops)} loops ({len(outers)} outer, {len(holes)} holes), "
       f"{sum(map(len, loops))} points, bbox {lw:.1f} x {y1 - y0:.1f} px, aspect {aspect:.4f}")

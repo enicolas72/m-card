@@ -25,14 +25,20 @@ A flat **190 × 96 × 50 mm** box (proto 2: 210 × 150 plus a console):
 - **OLED 3.12"** at the back right of the top, behind a window the size of
   its visible area (chamfered for the viewing angle). Screen and buttons
   are centered in the space right of the card.
-- **3 buttons** ⏮ ⏯ ⏭ in a row in front of the screen, same design as proto
-  2: 12 mm panel buttons, **cut-through** icons over a contrasting plate.
-- **"M." logo** inlaid in the front face, under the card: a pocket in the
-  wall plus the letters printed in another color and glued in (1 mm proud).
+- **3 buttons** ⏮ ⏯ ⏭ in a row in front of the screen, 12 mm panel buttons
+  as on proto 2. Their **icons are flush**: raised glyphs of a contrasting
+  plate glued under the top, through icon-shaped holes, 0.1 mm proud.
+- **"M." logo** in the front face, under the card, built the same way: the
+  letters stand on a backing plate glued inside the front wall and come
+  through a logo-shaped hole, 0.1 mm proud. The glue stays inside, out of
+  sight (glued-on letters left glue marks).
+- In both, gaps narrower than 0.9 mm between strokes are filled, so the
+  wall left between the holes stays printable (≥ 0.6 mm). The logo's dot is
+  moved 0.35 mm away from the stroke for the same reason.
 - **Rear USB-C** power socket, as on proto 2.
 
 **Two main parts.** The **tray** is the floor and the walls (Raspberry Pi
-posts, USB-C, logo pocket, vents). The **cover** is the whole top: slot,
+posts, USB-C, logo hole, vents). The **cover** is the whole top: slot,
 reader bay, OLED posts, buttons, icons. Everything that has wires sits on
 the cover. Wire it on the bench, plug the wires into the Pi, lower the cover
 onto the tray: 4 screws from below, none visible.
@@ -53,13 +59,16 @@ other.
 
 | Part | Print orientation | Role |
 |---|---|---|
-| `tray` | floor on the bed | floor + walls, 4 Pi posts, vents, rear USB-C, logo pocket, counterbored cover screws |
-| `cover` | **upside down** (top face on the bed) | the whole top: slot + channel, reader bay (backplate, side stops, ledge), OLED window + 4 posts, 3 button holes, cut-through icons + recess, 4 long screw bosses, alignment rim |
-| `icon_plate` | flat, **contrasting color** | glued into the recess under the icons: its color shows through them |
-| `logo` | flat, **contrasting color**, visible face up | the "M." letters (two pieces: the stroke and the dot), glued into the front pocket |
+| `tray` | floor on the bed | floor + walls, 4 Pi posts, vents, rear USB-C, logo hole, counterbored cover screws |
+| `cover` | **upside down** (top face on the bed) | the whole top: slot + channel, reader bay (backplate, side stops, ledge), OLED window + 4 posts, 3 button holes, icon holes + recess, 4 long screw bosses, alignment rim |
+| `icon_plate` | plate on the bed, **contrasting color**, **0.1 mm layers** | 61.6 × 7.6 plate with the three raised icons: glued into the recess under the top, the icons through it |
+| `logo` | plate on the bed, **contrasting color**, **0.1 mm layers** | 55 × 31 backing plate with the raised "M." letters: glued inside the front wall, the letters through it |
 
 PLA (or PETG), 0.4 nozzle, 0.2 mm layers, 3 perimeters, 15 % infill, **no
-supports**. Bed: 190 × 96 mm.
+supports**. Bed: 190 × 96 mm. Print `icon_plate` and `logo` at **0.1 mm
+layers**: the 0.1 mm the glyphs stand proud is one layer (at 0.2 mm they
+come out flush or 0.2 proud). The skin left above the icon recess is
+1.4 mm, 7 layers of 0.2, so the cover's own layers don't shift it.
 
 ## Mounting the components (on the cover)
 
@@ -75,6 +84,13 @@ supports**. Bed: 190 × 96 mm.
   through the module's holes, tapped into the PLA (M2.5×6 with a washer).
   If the picture comes out upside down: `oled.rotate: 2` in `mcard.yaml`.
 - **Buttons**: through the 3 mm top, nut underneath.
+- **Icon plate**: icons pushed up through their holes from below, plate in
+  its recess. Glue (thin, a few dots) only on the plate between the icons,
+  away from their holes: anything squeezed into the 0.15 mm gaps shows on
+  top. A thick glue film also eats into the 0.1 mm.
+- **Logo** (in the tray): letters pushed through the front wall from
+  inside, plate against the wall. Glue on the plate's margin only, the
+  3 mm around the letters.
 
 ## Threaded inserts and screws
 
