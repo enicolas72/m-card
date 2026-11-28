@@ -2,7 +2,8 @@
 
 Parametric model: [`mcard.scad`](mcard.scad) (all dimensions at the top of the
 file). Pre-generated STLs in [`stl/`](stl/). Drawn from Eric's sketch
-(2026-11-22); not printed yet. The proto 2 enclosure is archived in
+(2026-11-22); first printed 2026-11-28 (icon plate and logo then given
+more clearance). The proto 2 enclosure is archived in
 [`../../proto2/enclosure/`](../../proto2/enclosure/).
 
 ![Front view](view_front.png)
@@ -61,7 +62,7 @@ other.
 |---|---|---|
 | `tray` | floor on the bed | floor + walls, 4 Pi posts, vents, rear USB-C, logo hole, counterbored cover screws |
 | `cover` | **upside down** (top face on the bed) | the whole top: slot + channel, reader bay (backplate, side stops, ledge), OLED window + 4 posts, 3 button holes, icon holes + recess, 4 long screw bosses, alignment rim |
-| `icon_plate` | plate on the bed, **contrasting color**, **0.1 mm layers** | 61.6 × 7.6 plate with the three raised icons: glued into the recess under the top, the icons through it |
+| `icon_plate` | plate on the bed, **contrasting color**, **0.1 mm layers** | 61.2 × 7.2 plate with the three raised icons: glued into the recess under the top, the icons through it |
 | `logo` | plate on the bed, **contrasting color**, **0.1 mm layers** | 55 × 31 backing plate with the raised "M." letters: glued inside the front wall, the letters through it |
 
 PLA (or PETG), 0.4 nozzle, 0.2 mm layers, 3 perimeters, 15 % infill, **no
@@ -85,11 +86,16 @@ come out flush or 0.2 proud). The skin left above the icon recess is
   If the picture comes out upside down: `oled.rotate: 2` in `mcard.yaml`.
 - **Buttons**: through the 3 mm top, nut underneath.
 - **Icon plate**: icons pushed up through their holes from below, plate in
-  its recess. Glue (thin, a few dots) only on the plate between the icons,
+  its recess. The glyphs are 0.25 mm per side smaller than their holes and
+  their triangles have rounded tips (`icon_fit`, `icon_tip_r`): the first
+  plate (0.15 mm, sharp tips) did not go in, the printed holes having
+  closed up at their 60° tips. If a hole still has a lip on the top face
+  (first layer squashed), trim it with a blade. Glue (thin, a few dots) only on the plate between the icons,
   away from their holes: anything squeezed into the 0.15 mm gaps shows on
   top. A thick glue film also eats into the 0.1 mm.
 - **Logo** (in the tray): letters pushed through the front wall from
-  inside, plate against the wall. Glue on the plate's margin only, the
+  inside, plate against the wall. Letters 0.25 mm per side smaller than
+  their hole (`logo_fit`; the first print at 0.15 mm went in, but hard). Glue on the plate's margin only, the
   3 mm around the letters.
 
 ## Threaded inserts and screws

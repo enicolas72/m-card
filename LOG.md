@@ -1,5 +1,26 @@
 # M-Card project log
 
+## 2026-11-28 10:59 — Proto 3 enclosure: first print, looser small parts
+
+- First print by Eric. The `icon_plate` did not go into the cover; the
+  `logo` went into the tray, but hard. The model was right (hole = shape
+  + 0.15 mm everywhere): the printed holes come out smaller. On the cover,
+  the top face is on the bed and its first layer is squashed. A hole whose
+  edges close by e loses 2 e at a 60° tip, so the triangles' tips jammed
+  first.
+- Fixed on the small parts only; the printed cover and tray stay valid:
+  - **Icon plate**: glyphs 0.1 mm thinner per side (`icon_fit`, 0.25 mm
+    clearance in all), and the triangles get rounded tips (`icon_tip_r`
+    0.5; 0.75 mm clearance at the tip). This uses `$tip_r` on `_tri`, so
+    the holes keep their sharp shape. Plate outline clearance raised to
+    0.4 mm in the recess (the glyphs locate it): 61.2 × 7.2 mm.
+  - **Logo**: letters 0.1 mm thinner per side (`logo_fit`). No tip
+    rounding: `logo_bold` already rounds the tips, and another 0.3 mm
+    radius would have cut 1.2 mm off the flourish's end, leaving a
+    visible hole.
+- Checked: clearance ≥ 0.25 mm all around (2D offset test). The plates
+  still touch only their gluing faces.
+
 ## 2026-11-23 17:55 — Proto 3 enclosure: flush logo and icons
 
 - Eric's request, drawn on page 2 of his sketch: no more letters glued on

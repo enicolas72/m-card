@@ -134,8 +134,11 @@ icon_s      = 5;      // glyph size
 icon_dy     = 12.5;   // icon center in front of the button center
 icon_recess_t = 1.6;  // recess under the icons: 1.4 of skin left (7 layers of 0.2)
 icon_half_h = 4;      // recess half-height (the button nuts start 0.5 behind it)
-icon_plate_gap = 0.2; // plate clearance per side, in the recess
-icon_gap    = 0.15;   // glyph clearance per side, in the skin
+icon_plate_gap = 0.4; // plate clearance per side, in the recess (the glyphs locate it)
+icon_gap    = 0.15;   // hole clearance per side around the glyph shape, in the skin
+icon_fit    = 0.1;    // plate glyphs a bit thinner still: printed holes come out small
+icon_tip_r  = 0.5;    // plate glyph triangles rounded: their 60 deg tips are where the
+                      // printed holes close up first (a hole shrinking by e loses 2 e there)
 icon_proud  = 0.1;    // the raised glyphs stand out of the top by this much
 fill_gaps   = 0.45;   // gaps and corners under 2 x this in the raised shapes are filled:
                       // what is left of the skin between the holes stays printable
@@ -153,7 +156,9 @@ logo_cx     = slot_cx + 2;  // under the card; the plate clears the front-left b
 logo_cz     = box_h/2;
 logo_proud  = 0.1;    // the letters stand out of the front face by this much
 logo_bold   = 0.2;    // thickens the strokes: the flourish's tip stays printable
-logo_gap    = 0.15;   // hole clearance per side
+logo_gap    = 0.15;   // hole clearance per side around the letter shape
+logo_fit    = 0.1;    // printed letters a bit thinner still: 0.25 per side in all
+                      // (no tip rounding needed: logo_bold already rounds them)
 logo_dot_shift = [0.24, -0.26];   // the dot, 0.35 mm farther from the tail (1.14 mm apart
                                   // on the artwork): 0.8 mm of wall between their holes
 logo_plate_t = 1.2;   // backing plate
@@ -233,7 +238,13 @@ module logo_shape(extra = 0) {
     }
 }
 
-module _tri(s, dir) { polygon([[0, -s/2], [0, s/2], [dir*0.87*s, 0]]); }
+// $tip_r > 0: corners rounded (the plate's glyphs; the holes keep sharp tips)
+$tip_r = 0;
+module _tri(s, dir) {
+    if ($tip_r > 0) offset(r = $tip_r, $fn = 16) offset(delta = -$tip_r) _tri0(s, dir);
+    else _tri0(s, dir);
+}
+module _tri0(s, dir) { polygon([[0, -s/2], [0, s/2], [dir*0.87*s, 0]]); }
 module _icon_prev(s) {
     translate([0.1*s, 0]) {
         translate([-1.1*s, -s/2]) square([0.22*s, s]);
@@ -426,7 +437,8 @@ module icon_plate() {
     linear_extrude(icon_plate_t) icon_recess_2d(icon_plate_gap);
     for (i = [0 : 2])
         translate([btn_x[i], icon_y, 0])
-            linear_extrude(icon_plate_t + icon_glyph_h) _btn_icon(i);
+            linear_extrude(icon_plate_t + icon_glyph_h)
+                offset(delta = -icon_fit) _btn_icon(i, $tip_r = icon_tip_r);
 }
 
 // backing plate outline, logo coordinates: a rounded rectangle around the
@@ -445,7 +457,7 @@ module logo_plate_2d() {
 // printed plate down: the letter tops are the visible faces
 module logo_piece() {
     linear_extrude(logo_plate_t) logo_plate_2d();
-    linear_extrude(logo_plate_t + wall + logo_proud) logo_shape();
+    linear_extrude(logo_plate_t + wall + logo_proud) offset(delta = -logo_fit) logo_shape();
 }
 
 /* ------------------- dummy components (views and checks) ------------------- */
